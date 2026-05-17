@@ -1,3 +1,5 @@
+import { AuthProvider } from '../context/AuthContext'
+
 export default function RootLayout({
   children,
 }: {
@@ -5,7 +7,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body style={{
+        margin: 0,
+        background: '#0a0a0a',
+        color: '#ffffff',
+        fontFamily: 'Arial, sans-serif'
+      }}>
+        <AuthProvider>
+          {children}
+        </AuthProvider>
+      </body>
     </html>
   )
 }
