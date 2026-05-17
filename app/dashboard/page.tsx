@@ -86,7 +86,7 @@ export default function DashboardPage() {
             🎉 Welcome to Merj!
           </h2>
           <p style={{ color: '#888', fontSize: '0.9rem', margin: 0 }}>
-            Your account is saved in Firebase Firestore.
+            Your Merj account is live. Start buying or selling web assets.
           </p>
         </div>
 
