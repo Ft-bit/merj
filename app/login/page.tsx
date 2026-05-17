@@ -72,18 +72,12 @@ export default function LoginPage() {
         width: '100%',
         maxWidth: '400px'
       }}>
-        <h1 style={{
-          fontSize: '1.5rem',
-          fontWeight: 'bold',
-          marginBottom: '0.5rem',
-          color: '#fff',
-          margin: '0 0 0.5rem 0'
-        }}>
-          {isRegister ? 'Create account' : 'Welcome back'}
-        </h1>
-        <p style={{ color: '#888', fontSize: '0.9rem', margin: '0 0 1.5rem 0' }}>
-          {isRegister ? 'Join the marketplace' : 'Sign in to continue'}
-        </p>
+<h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '0.5rem', color: '#fff', margin: '0 0 0.5rem 0' }}>
+  {isRegister ? 'Join Merj' : 'Welcome to Merj'}
+</h1>
+<p style={{ color: '#888', fontSize: '0.9rem', margin: '0 0 1.5rem 0' }}>
+  {isRegister ? 'Create your Merj account' : 'Sign in to your account'}
+</p>
 
         {/* Google */}
         <button
