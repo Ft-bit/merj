@@ -1,509 +1,512 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { useEffect, useRef, useState } from 'react'
 
-const connectors = [
+const WordPressIcon = () => (
+  <svg viewBox="0 0 24 24" width="44" height="44" fill="white">
+    <path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zM3.931 12c0-1.15.243-2.243.668-3.236L7.898 19.3A8.454 8.454 0 0 1 3.93 12zm8.069 8.47a8.52 8.52 0 0 1-2.42-.352l2.569-7.471 2.634 7.214a.892.892 0 0 0 .067.13 8.504 8.504 0 0 1-2.85.479zm1.18-12.71c.516-.027.98-.081.98-.081.462-.055.408-.734-.054-.707 0 0-1.386.109-2.28.109-.84 0-2.253-.109-2.253-.109-.463-.027-.517.679-.054.707 0 0 .437.054.898.081l1.334 3.655-1.874 5.62L8.11 7.76c.516-.027.98-.081.98-.081.462-.055.408-.734-.054-.707 0 0-1.386.109-2.28.109a9.128 9.128 0 0 1-.56-.017A8.474 8.474 0 0 1 12 3.53c2.234 0 4.27.854 5.797 2.252a3.46 3.46 0 0 0-.246-.009c-.84 0-1.44.73-1.44 1.514 0 .707.407 1.306.842 2.012.326.571.707 1.305.707 2.362 0 .734-.282 1.586-.65 2.77l-.853 2.852-3.077-9.153zm3.355 11.73-.048-.092 2.605-7.534c.489-1.224.652-2.202.652-3.073 0-.316-.021-.61-.058-.887A8.473 8.473 0 0 1 20.47 12a8.447 8.447 0 0 1-3.934 7.49z"/>
+  </svg>
+)
+
+const BloggerIcon = () => (
+  <svg viewBox="0 0 24 24" width="44" height="44" fill="white">
+    <path d="M20.585 9.463C20.147 9.463 20 9.29 20 8.857V7.143C20 4.303 17.674 2 14.808 2H6.239C3.373 2 1 4.303 1 7.143v9.714C1 19.697 3.326 22 6.192 22h11.616C20.674 22 23 19.697 23 16.857v-4.345c0-1.695-1.019-3.049-2.415-3.049zM8.962 7.393h3.693c.52 0 .942.422.942.941v.001a.942.942 0 0 1-.942.942H8.962a.942.942 0 0 1-.942-.942v-.001c0-.519.422-.941.942-.941zm5.885 9.214H8.962a.942.942 0 0 1-.942-.942v-.001c0-.52.422-.942.942-.942h5.885c.52 0 .942.422.942.942v.001a.941.941 0 0 1-.942.942z"/>
+  </svg>
+)
+
+const VercelIcon = () => (
+  <svg viewBox="0 0 24 24" width="44" height="44" fill="white">
+    <path d="M24 22.525H0l12-21.05 12 21.05z"/>
+  </svg>
+)
+
+const GlobeIcon = () => (
+  <svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round">
+    <circle cx="12" cy="12" r="10"/>
+    <path d="M12 2a14.5 14.5 0 0 1 4 10 14.5 14.5 0 0 1-4 10 14.5 14.5 0 0 1-4-10A14.5 14.5 0 0 1 12 2z"/>
+    <path d="M2 12h20"/>
+    <path d="M2 8h20M2 16h20" strokeOpacity="0.5"/>
+  </svg>
+)
+
+const NetlifyIcon = () => (
+  <svg viewBox="0 0 24 24" width="44" height="44" fill="white">
+    <path d="M16.934 8.519a1.044 1.044 0 0 1 .303.732v1.727l3.488-3.488zm.303 7.462a1.044 1.044 0 0 1-.303.732L12 21.658V19.03l5.237-5.237zM12 2.342l4.934 4.934a1.044 1.044 0 0 1 .303.732v.199L12 13.145V2.342zM5.768 8.028l3.488 3.488V9.789a1.044 1.044 0 0 1 .303-.732L12 6.124V2.342zm0 7.944V14.25l3.791 3.791H5.768zm3.791 5.686L5.768 17.867v-1.727L9.559 19.93zm0-13.658L6.071 4.512A1.044 1.044 0 0 1 7.116 3.3L9.559 5.743zm2.441 11.617L7.116 14.323a1.044 1.044 0 0 1 0-1.476L12 7.963z"/>
+  </svg>
+)
+
+const platforms = [
   {
     name: 'WordPress',
-    color: '#21759b',
-    icon: (
-      <svg viewBox="0 0 24 24" width="28" height="28" fill="#21759b">
-        <path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 1.542c2.347 0 4.49.875 6.123 2.307L4.849 18.123A8.458 8.458 0 0 1 3.542 12c0-4.669 3.789-8.458 8.458-8.458zm0 16.916a8.413 8.413 0 0 1-4.664-1.413l6.201-18.01A8.432 8.432 0 0 1 20.458 12c0 4.669-3.789 8.458-8.458 8.458z"/>
-      </svg>
-    )
+    bg: 'linear-gradient(145deg, #1e8ec4 0%, #0073aa 45%, #004d73 100%)',
+    glow: 'rgba(0,115,170,0.6)',
+    reflection: 'rgba(255,255,255,0.15)',
+    delay: '0s',
+    rotate: '-6deg',
+    icon: <WordPressIcon />,
   },
   {
     name: 'Blogger',
-    color: '#f57d00',
-    icon: (
-      <svg viewBox="0 0 24 24" width="28" height="28" fill="#f57d00">
-        <path d="M18.5 0h-13C2.467 0 0 2.467 0 5.5v13C0 21.533 2.467 24 5.5 24h13c3.033 0 5.5-2.467 5.5-5.5v-13C24 2.467 21.533 0 18.5 0zm-2.757 17.8H8.257C7.556 17.8 7 17.243 7 16.543V14.8c0-.7.556-1.257 1.257-1.257h7.486c.7 0 1.257.557 1.257 1.257v1.743c0 .7-.557 1.257-1.257 1.257zm0-6.371H12.77c-.399-.973-1.354-1.657-2.47-1.657H8.257C7.556 9.772 7 9.215 7 8.515V6.771c0-.7.556-1.257 1.257-1.257h3.043c2.382 0 4.386 1.703 4.9 3.957h.543c.7 0 1.257.557 1.257 1.257v.444c0 .7-.557 1.257-1.257 1.257z"/>
-      </svg>
-    )
+    bg: 'linear-gradient(145deg, #ff9534 0%, #f57d00 45%, #c45e00 100%)',
+    glow: 'rgba(245,125,0,0.6)',
+    reflection: 'rgba(255,255,255,0.18)',
+    delay: '0.15s',
+    rotate: '-2deg',
+    icon: <BloggerIcon />,
+  },
+  {
+    name: 'Any Website',
+    bg: 'linear-gradient(145deg, #5b3fa6 0%, #7c3aed 45%, #4c1d95 100%)',
+    glow: 'rgba(124,58,237,0.7)',
+    reflection: 'rgba(255,255,255,0.2)',
+    delay: '0.3s',
+    rotate: '0deg',
+    icon: <GlobeIcon />,
+    center: true,
   },
   {
     name: 'Vercel',
-    color: '#ffffff',
-    icon: (
-      <svg viewBox="0 0 24 24" width="28" height="28" fill="#ffffff">
-        <path d="M24 22.525H0l12-21.05 12 21.05z"/>
-      </svg>
-    )
-  },
-  {
-    name: 'GitHub Pages',
-    color: '#ffffff',
-    icon: (
-      <svg viewBox="0 0 24 24" width="28" height="28" fill="#ffffff">
-        <path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
-      </svg>
-    )
+    bg: 'linear-gradient(145deg, #2a2a2a 0%, #111 45%, #000 100%)',
+    glow: 'rgba(255,255,255,0.25)',
+    reflection: 'rgba(255,255,255,0.12)',
+    delay: '0.45s',
+    rotate: '2deg',
+    icon: <VercelIcon />,
   },
   {
     name: 'Netlify',
-    color: '#00c7b7',
-    icon: (
-      <svg viewBox="0 0 24 24" width="28" height="28" fill="#00c7b7">
-        <path d="M16.934 8.519a1.044 1.044 0 0 1 .303.732v1.727l3.488-3.488zm.303 7.462a1.044 1.044 0 0 1-.303.732L12 21.658V19.03l5.237-5.237zM12 2.342l4.934 4.934a1.044 1.044 0 0 1 .303.732v.199L12 13.145V2.342zM5.768 8.028l3.488 3.488V9.789a1.044 1.044 0 0 1 .303-.732L12 6.124V2.342zm0 7.944V14.25l3.791 3.791H5.768zm3.791 5.686L5.768 17.867v-1.727L9.559 19.93zm0-13.658L6.071 4.512A1.044 1.044 0 0 1 7.116 3.3L9.559 5.743zm2.441 11.617L7.116 14.323a1.044 1.044 0 0 1 0-1.476L12 7.963z"/>
-      </svg>
-    )
-  },
-  {
-    name: 'Shopify',
-    color: '#96bf48',
-    icon: (
-      <svg viewBox="0 0 24 24" width="28" height="28" fill="#96bf48">
-        <path d="M15.337 23.979l7.216-1.561s-2.604-17.613-2.625-17.73a.336.336 0 0 0-.33-.285c-.14 0-2.682-.189-2.682-.189s-1.773-1.754-1.978-1.961v21.726h.399zM11.733 2.35S10.16.802 8.01.802C5.614.802 4.395 2.68 4.037 4.558c-.981.305-1.674.518-1.674.518S.001 5.803 0 6.046L1.427 23.98l13.91-2.547V2.254c-.584.093-.974.281-1.227.367-.109-.148-.226-.271-.377-.271zm1.227 13.43L8.4 17.162l-.512-4.09 4.561-1.082.511 3.79zm-3.24-8.64c.435-.13.915-.268 1.432-.414l.383 2.99-1.815.431z"/>
-      </svg>
-    )
-  },
-  {
-    name: 'Wix',
-    color: '#faad00',
-    icon: (
-      <svg viewBox="0 0 24 24" width="28" height="28" fill="#faad00">
-        <path d="M9.567 7.348c-.47.235-.78.58-.968 1.048-.043.11-.09.243-.14.396L7.2 13.013l-1.277-4.12C5.66 7.73 5.158 7.125 4.2 7.063c-.63-.04-1.15.213-1.463.715-.24.384-.276.804-.255 1.08l1.93 8.065c.28 1.17 1.025 1.73 1.793 1.73.777 0 1.42-.555 1.697-1.47l1.37-4.464 1.37 4.466c.278.913.92 1.467 1.697 1.467.77 0 1.514-.558 1.795-1.728l1.93-8.065c.02-.278-.015-.697-.255-1.08-.313-.503-.832-.757-1.462-.716-.96.062-1.46.666-1.723 1.83L11.14 13.01l-1.258-4.22c-.05-.151-.097-.284-.14-.394-.188-.468-.498-.813-.968-1.048h.793z"/>
-        <path d="M20.457 7.063c-.754.016-1.282.47-1.627 1.395l-1.903 5.32-1.038-3.445c-.18-.598-.548-.935-1.008-.98-.01-.001-.022-.002-.033-.002-.46 0-.85.313-1.04.835l-1.03 3.592-1.906-5.322c-.344-.924-.873-1.378-1.627-1.393h-.014c-.766 0-1.395.563-1.395 1.256 0 .14.024.284.073.428l2.49 7.1c.333.95 1.017 1.52 1.83 1.52.817 0 1.504-.578 1.83-1.548l.798-2.456.797 2.456c.326.97 1.013 1.547 1.83 1.547.813 0 1.497-.57 1.83-1.52l2.49-7.1c.05-.144.073-.288.073-.428 0-.693-.63-1.256-1.395-1.256h-.015z"/>
-      </svg>
-    )
-  },
-  {
-    name: 'Squarespace',
-    color: '#ffffff',
-    icon: (
-      <svg viewBox="0 0 24 24" width="28" height="28" fill="#ffffff">
-        <path d="M17.108 4.96a4.755 4.755 0 0 0-6.715 0l-1.21 1.195 1.88 1.88 1.21-1.195a2.394 2.394 0 0 1 3.384 0 2.394 2.394 0 0 1 0 3.384L9.96 15.92a2.394 2.394 0 0 1-3.384 0 2.394 2.394 0 0 1 0-3.384l1.194-1.195-1.88-1.88-1.194 1.195a4.755 4.755 0 0 0 0 6.716 4.755 4.755 0 0 0 6.716 0l5.697-5.697a4.755 4.755 0 0 0 0-6.716z"/>
-        <path d="M19.11 4.89a4.755 4.755 0 0 0-6.716 0L6.698 10.587a4.755 4.755 0 0 0 0 6.716 4.755 4.755 0 0 0 6.716 0l1.194-1.195-1.88-1.88-1.194 1.195a2.394 2.394 0 0 1-3.384 0 2.394 2.394 0 0 1 0-3.384l5.697-5.697a2.394 2.394 0 0 1 3.384 0 2.394 2.394 0 0 1 0 3.384l-1.21 1.195 1.88 1.88 1.21-1.195a4.755 4.755 0 0 0 0-6.716z"/>
-      </svg>
-    )
-  },
-  {
-    name: 'Custom Domain',
-    color: '#a78bfa',
-    icon: (
-      <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#a78bfa" strokeWidth="1.5">
-        <circle cx="12" cy="12" r="10"/>
-        <path d="M12 2a14.5 14.5 0 0 1 4 10 14.5 14.5 0 0 1-4 10 14.5 14.5 0 0 1-4-10A14.5 14.5 0 0 1 12 2z"/>
-        <path d="M2 12h20"/>
-      </svg>
-    )
-  },
-  {
-    name: 'Live Local',
-    color: '#34d399',
-    icon: (
-      <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#34d399" strokeWidth="1.5">
-        <rect x="2" y="3" width="20" height="14" rx="2"/>
-        <path d="M8 21h8M12 17v4"/>
-        <path d="M9 8l2 2-2 2M13 10h2"/>
-      </svg>
-    )
-  },
-]
-
-const steps = [
-  {
-    number: '01',
-    title: 'List your asset',
-    body: 'Connect your site through any of our platform integrations. We verify real ownership automatically — no screenshots, no trust required.',
-  },
-  {
-    number: '02',
-    title: 'Buyer pays. Money locks.',
-    body: "The buyer's payment is secured the moment they check out. Neither side can touch it until the transfer is done.",
-  },
-  {
-    number: '03',
-    title: 'Transfer happens. Money moves.',
-    body: 'Our system executes the handover directly through each platform\'s API. Admin access, project files, credentials — all transferred automatically. Then, and only then, you get paid.',
+    bg: 'linear-gradient(145deg, #00d4c2 0%, #00c7b7 45%, #009e91 100%)',
+    glow: 'rgba(0,199,183,0.6)',
+    reflection: 'rgba(255,255,255,0.18)',
+    delay: '0.6s',
+    rotate: '6deg',
+    icon: <NetlifyIcon />,
   },
 ]
 
 export default function Home() {
   const router = useRouter()
-  const containerRef = useRef<HTMLDivElement>(null)
-  const sectionsRef = useRef<HTMLDivElement[]>([])
+  const [scrolled, setScrolled] = useState(false)
+  const [visible, setVisible] = useState(false)
 
   useEffect(() => {
-    let ctx: any
-    const load = async () => {
-      const { gsap } = await import('gsap')
-      const { ScrollTrigger } = await import('gsap/ScrollTrigger')
-      gsap.registerPlugin(ScrollTrigger)
-      ctx = gsap.context(() => {
-
-        // Hero title word split animation
-        gsap.from('.hero-word', {
-          y: 120,
-          opacity: 0,
-          stagger: 0.08,
-          duration: 1.2,
-          ease: 'power4.out',
-          delay: 0.2,
-        })
-
-        gsap.from('.hero-sub', {
-          y: 30,
-          opacity: 0,
-          duration: 1,
-          ease: 'power3.out',
-          delay: 0.9,
-        })
-
-        gsap.from('.hero-cta', {
-          y: 20,
-          opacity: 0,
-          duration: 0.8,
-          ease: 'power3.out',
-          delay: 1.2,
-        })
-
-        // Connector cards stagger on scroll
-        gsap.from('.connector-card', {
-          scrollTrigger: {
-            trigger: '.connectors-section',
-            start: 'top 80%',
-          },
-          y: 50,
-          opacity: 0,
-          stagger: 0.06,
-          duration: 0.7,
-          ease: 'power3.out',
-        })
-
-        // Steps animate in
-        gsap.from('.step-item', {
-          scrollTrigger: {
-            trigger: '.steps-section',
-            start: 'top 75%',
-          },
-          x: -60,
-          opacity: 0,
-          stagger: 0.2,
-          duration: 0.9,
-          ease: 'power3.out',
-        })
-
-        // Ticker marquee
-        const ticker = document.querySelector('.ticker-track') as HTMLElement
-        if (ticker) {
-          gsap.to(ticker, {
-            x: '-50%',
-            duration: 25,
-            ease: 'none',
-            repeat: -1,
-          })
-        }
-
-        // CTA section
-        gsap.from('.cta-content', {
-          scrollTrigger: {
-            trigger: '.cta-section',
-            start: 'top 80%',
-          },
-          y: 40,
-          opacity: 0,
-          duration: 1,
-          ease: 'power3.out',
-        })
-
-      }, containerRef)
+    const timer = setTimeout(() => setVisible(true), 100)
+    const handleScroll = () => setScrolled(window.scrollY > 20)
+    window.addEventListener('scroll', handleScroll)
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener('scroll', handleScroll)
     }
-    load()
-    return () => ctx && ctx.revert()
   }, [])
 
   return (
-    <div ref={containerRef} style={{
+    <div style={{
       background: '#000',
-      color: '#fff',
+      minHeight: '100vh',
       fontFamily: '"SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
       overflowX: 'hidden',
+      color: '#fff',
     }}>
 
       <style>{`
-        ::selection { background: #e8c547; color: #000; }
-        html { scroll-behavior: smooth; }
-
+        @keyframes float0 {
+          0%,100% { transform: rotate(-6deg) translateY(0px) scale(1); }
+          50% { transform: rotate(-6deg) translateY(-14px) scale(1.01); }
+        }
+        @keyframes float1 {
+          0%,100% { transform: rotate(-2deg) translateY(0px) scale(1); }
+          50% { transform: rotate(-2deg) translateY(-18px) scale(1.01); }
+        }
+        @keyframes float2 {
+          0%,100% { transform: rotate(0deg) translateY(0px) scale(1); }
+          50% { transform: rotate(0deg) translateY(-20px) scale(1.02); }
+        }
+        @keyframes float3 {
+          0%,100% { transform: rotate(2deg) translateY(0px) scale(1); }
+          50% { transform: rotate(2deg) translateY(-16px) scale(1.01); }
+        }
+        @keyframes float4 {
+          0%,100% { transform: rotate(6deg) translateY(0px) scale(1); }
+          50% { transform: rotate(6deg) translateY(-12px) scale(1.01); }
+        }
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes connectorPulse {
+          0%, 100% { opacity: 0.15; }
+          50% { opacity: 0.4; }
+        }
+        @keyframes dotTravel {
+          0% { left: 0%; opacity: 0; }
+          10% { opacity: 1; }
+          90% { opacity: 1; }
+          100% { left: 100%; opacity: 0; }
+        }
+        @keyframes iconEntrance {
+          from { opacity: 0; transform: translateY(40px) scale(0.85); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
         @keyframes grain {
-          0%, 100% { transform: translate(0,0); }
-          10% { transform: translate(-2%,-3%); }
-          30% { transform: translate(3%,1%); }
-          50% { transform: translate(-1%,4%); }
-          70% { transform: translate(2%,-2%); }
-          90% { transform: translate(-3%,2%); }
+          0%,100% { transform: translate(0,0); }
+          20% { transform: translate(-1%,-2%); }
+          40% { transform: translate(2%,1%); }
+          60% { transform: translate(-1%,3%); }
+          80% { transform: translate(1%,-1%); }
         }
-
-        @keyframes cursor-blink {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0; }
+        .icon-card {
+          position: relative;
+          border-radius: 22px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: filter 0.3s ease;
         }
-
+        .icon-card:hover {
+          filter: brightness(1.15) saturate(1.1);
+        }
+        .icon-card::before {
+          content: '';
+          position: absolute;
+          top: 0; left: 0; right: 0;
+          height: 55%;
+          border-radius: 22px 22px 0 0;
+          background: linear-gradient(180deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0) 100%);
+          z-index: 2;
+          pointer-events: none;
+        }
+        .icon-card::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: 22px;
+          border: 1px solid rgba(255,255,255,0.18);
+          z-index: 3;
+          pointer-events: none;
+        }
         .btn-gold {
           background: #e8c547;
           color: #000;
           border: none;
-          padding: 1rem 2.5rem;
-          border-radius: 4px;
-          font-size: 0.95rem;
+          padding: 0.9rem 2.25rem;
+          border-radius: 6px;
+          font-size: 0.9rem;
           font-weight: 700;
           cursor: pointer;
-          letter-spacing: 0.04em;
-          text-transform: uppercase;
+          letter-spacing: 0.03em;
           transition: all 0.2s ease;
+          font-family: inherit;
         }
         .btn-gold:hover {
           background: #f0d060;
           transform: translateY(-2px);
-          box-shadow: 0 12px 30px rgba(232,197,71,0.25);
+          box-shadow: 0 12px 30px rgba(232,197,71,0.3);
         }
-
         .btn-ghost {
           background: transparent;
-          color: #fff;
-          border: 1px solid rgba(255,255,255,0.2);
-          padding: 1rem 2.5rem;
-          border-radius: 4px;
-          font-size: 0.95rem;
-          font-weight: 600;
-          cursor: pointer;
-          letter-spacing: 0.04em;
-          text-transform: uppercase;
-          transition: all 0.2s ease;
-        }
-        .btn-ghost:hover {
-          border-color: rgba(255,255,255,0.6);
-          transform: translateY(-2px);
-        }
-
-        .connector-card {
-          background: rgba(255,255,255,0.03);
-          border: 1px solid rgba(255,255,255,0.07);
-          border-radius: 12px;
-          padding: 1.5rem 1rem;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 0.75rem;
-          cursor: default;
-          transition: all 0.25s ease;
-        }
-        .connector-card:hover {
-          background: rgba(255,255,255,0.06);
-          border-color: rgba(255,255,255,0.15);
-          transform: translateY(-4px);
-        }
-
-        .step-number {
-          font-size: 5rem;
-          font-weight: 900;
-          color: rgba(255,255,255,0.04);
-          line-height: 1;
-          position: absolute;
-          top: -1rem;
-          left: -0.5rem;
-          letter-spacing: -0.04em;
-          user-select: none;
-        }
-
-        .nav-link {
-          color: rgba(255,255,255,0.5);
-          background: none;
-          border: none;
-          cursor: pointer;
+          color: rgba(255,255,255,0.7);
+          border: 1px solid rgba(255,255,255,0.15);
+          padding: 0.9rem 2.25rem;
+          border-radius: 6px;
           font-size: 0.9rem;
-          letter-spacing: 0.02em;
-          padding: 0.5rem;
-          transition: color 0.2s;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
           font-family: inherit;
         }
-        .nav-link:hover { color: #fff; }
-
+        .btn-ghost:hover {
+          border-color: rgba(255,255,255,0.4);
+          color: #fff;
+          transform: translateY(-2px);
+        }
+        .nav-btn {
+          background: none;
+          border: none;
+          color: rgba(255,255,255,0.45);
+          cursor: pointer;
+          font-size: 0.88rem;
+          font-family: inherit;
+          padding: 0.4rem 0.75rem;
+          transition: color 0.2s;
+          letter-spacing: 0.01em;
+        }
+        .nav-btn:hover { color: #fff; }
+        .connector-line {
+          position: relative;
+          height: 1px;
+          background: rgba(255,255,255,0.08);
+          overflow: visible;
+          animation: connectorPulse 2.5s ease-in-out infinite;
+        }
+        .connector-dot {
+          position: absolute;
+          top: -3px;
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: #e8c547;
+          animation: dotTravel 2s linear infinite;
+        }
         .grain-overlay {
           position: fixed;
           inset: -50%;
           width: 200%;
           height: 200%;
-          opacity: 0.035;
-          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-          animation: grain 0.5s steps(1) infinite;
+          opacity: 0.025;
+          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+          animation: grain 0.4s steps(1) infinite;
           pointer-events: none;
-          z-index: 999;
+          z-index: 9999;
+        }
+        .stat-item:hover {
+          border-color: rgba(232,197,71,0.2) !important;
         }
       `}</style>
 
-      {/* Film grain overlay */}
       <div className="grain-overlay" />
 
-      {/* ─── NAVBAR ─── */}
+      {/* ─── NAV ─── */}
       <nav style={{
         position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
+        top: 0, left: 0, right: 0,
         zIndex: 100,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '1.5rem 3rem',
-        borderBottom: '1px solid rgba(255,255,255,0.05)',
-        background: 'rgba(0,0,0,0.7)',
-        backdropFilter: 'blur(20px)',
+        padding: '1.25rem 2.5rem',
+        background: scrolled ? 'rgba(0,0,0,0.85)' : 'transparent',
+        backdropFilter: scrolled ? 'blur(20px)' : 'none',
+        borderBottom: scrolled ? '1px solid rgba(255,255,255,0.05)' : '1px solid transparent',
+        transition: 'all 0.3s ease',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
           <div style={{
-            width: '28px',
-            height: '28px',
+            width: '26px', height: '26px',
             background: '#e8c547',
-            borderRadius: '4px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontWeight: '900',
-            fontSize: '14px',
-            color: '#000',
-            letterSpacing: '-0.04em'
+            borderRadius: '5px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontWeight: '900', fontSize: '13px', color: '#000',
           }}>M</div>
-          <span style={{ fontWeight: '700', fontSize: '1.1rem', letterSpacing: '-0.02em' }}>
-            Merj
-          </span>
+          <span style={{ fontWeight: '700', fontSize: '1.05rem', letterSpacing: '-0.02em' }}>Merj</span>
         </div>
 
         <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
-          <button className="nav-link" onClick={() => router.push('/listings')}>
-            Browse
-          </button>
-          <button className="nav-link" onClick={() => router.push('/sell')}>
-            Sell
-          </button>
-          <button className="nav-link" onClick={() => router.push('/login')}
-            style={{ marginLeft: '1rem', color: '#fff' }}>
-            Sign in
-          </button>
-          <button
-            onClick={() => router.push('/login')}
-            className="btn-gold"
-            style={{ padding: '0.55rem 1.25rem', fontSize: '0.85rem', marginLeft: '0.5rem' }}
-          >
+          <button className="nav-btn" onClick={() => router.push('/listings')}>Browse</button>
+          <button className="nav-btn" onClick={() => router.push('/sell')}>Sell</button>
+          <button className="nav-btn">About</button>
+        </div>
+
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+          <button className="nav-btn" onClick={() => router.push('/login')}>Sign in</button>
+          <button className="btn-gold" style={{ padding: '0.5rem 1.25rem', fontSize: '0.83rem' }}
+            onClick={() => router.push('/login')}>
             List a site
           </button>
         </div>
       </nav>
 
-      {/* ─── SECTION 1: HERO ─── */}
+      {/* ─── HERO ─── */}
       <section style={{
         minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column',
+        alignItems: 'center',
         justifyContent: 'center',
-        padding: '8rem 3rem 4rem',
+        padding: '7rem 2rem 4rem',
         position: 'relative',
+        textAlign: 'center',
         overflow: 'hidden',
       }}>
-        {/* Background video feel — abstract website grid */}
+
+        {/* Radial glow behind icons */}
+        <div style={{
+          position: 'absolute',
+          top: '15%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: '800px',
+          height: '400px',
+          background: 'radial-gradient(ellipse at center, rgba(124,58,237,0.18) 0%, rgba(232,197,71,0.04) 40%, transparent 70%)',
+          pointerEvents: 'none',
+          zIndex: 0,
+        }} />
+
+        {/* Grid lines */}
         <div style={{
           position: 'absolute',
           inset: 0,
           backgroundImage: `
-            linear-gradient(rgba(232,197,71,0.03) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(232,197,71,0.03) 1px, transparent 1px)
+            linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)
           `,
           backgroundSize: '80px 80px',
+          maskImage: 'radial-gradient(ellipse at center top, black 30%, transparent 75%)',
+          WebkitMaskImage: 'radial-gradient(ellipse at center top, black 30%, transparent 75%)',
           zIndex: 0,
         }} />
 
-        {/* Vignette */}
+        {/* ─── PLATFORM ICONS ROW ─── */}
         <div style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'radial-gradient(ellipse at center, transparent 30%, #000 100%)',
-          zIndex: 1,
-        }} />
+          position: 'relative',
+          zIndex: 2,
+          display: 'flex',
+          alignItems: 'flex-end',
+          justifyContent: 'center',
+          gap: '0',
+          marginBottom: '5rem',
+          opacity: visible ? 1 : 0,
+          transition: 'opacity 0.6s ease',
+        }}>
+          {platforms.map((p, i) => {
+            const isCenter = p.center
+            const size = isCenter ? 110 : 88
+            const animDelay = p.delay
 
-        {/* Floating browser windows */}
-        {[
-          { top: '15%', right: '5%', w: 280, opacity: 0.06, rotate: 8 },
-          { top: '50%', right: '-2%', w: 220, opacity: 0.04, rotate: -5 },
-          { top: '25%', left: '-3%', w: 200, opacity: 0.05, rotate: -10 },
-        ].map((pos, i) => (
-          <div key={i} style={{
-            position: 'absolute',
-            top: pos.top,
-            right: (pos as any).right,
-            left: (pos as any).left,
-            width: pos.w,
-            opacity: pos.opacity,
-            transform: `rotate(${pos.rotate}deg)`,
-            zIndex: 1,
-            border: '1px solid rgba(255,255,255,0.3)',
-            borderRadius: '8px',
-            overflow: 'hidden',
-          }}>
-            <div style={{ height: '24px', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', padding: '0 8px', gap: '4px' }}>
-              {[0,1,2].map(d => <div key={d} style={{ width: 6, height: 6, borderRadius: '50%', background: '#fff' }} />)}
-            </div>
-            <div style={{ height: pos.w * 0.6, background: 'rgba(255,255,255,0.03)' }}>
-              {[0,1,2,3,4].map(d => (
-                <div key={d} style={{ height: '8px', background: 'rgba(255,255,255,0.08)', borderRadius: '2px', margin: '10px 10px 0', width: `${60 + d * 8}%` }} />
-              ))}
-            </div>
-          </div>
-        ))}
+            return (
+              <div key={p.name} style={{ display: 'flex', alignItems: 'flex-end', position: 'relative' }}>
 
-        {/* Hero content */}
-        <div style={{ position: 'relative', zIndex: 2, maxWidth: '1000px' }}>
+                {/* Connector line between icons */}
+                {i > 0 && (
+                  <div style={{ position: 'relative', width: '32px', height: '1px', marginBottom: isCenter || platforms[i-1].center ? '60px' : '48px' }}>
+                    <div className="connector-line" style={{ width: '100%', animationDelay: `${i * 0.4}s` }}>
+                      <div className="connector-dot" style={{ animationDelay: `${i * 0.6}s` }} />
+                    </div>
+                  </div>
+                )}
+
+                {/* Icon container with glow */}
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '12px',
+                  animation: `iconEntrance 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) ${parseFloat(p.delay) + 0.3}s both`,
+                }}>
+                  {/* Glow beneath */}
+                  <div style={{
+                    position: 'absolute',
+                    bottom: '20px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    width: `${size * 0.8}px`,
+                    height: '20px',
+                    background: p.glow,
+                    filter: 'blur(16px)',
+                    borderRadius: '50%',
+                    zIndex: -1,
+                    opacity: 0.6,
+                  }} />
+
+                  {/* The icon card */}
+                  <div
+                    className="icon-card"
+                    style={{
+                      width: `${size}px`,
+                      height: `${size}px`,
+                      background: p.bg,
+                      animation: `float${i} ${3.5 + i * 0.3}s ease-in-out ${animDelay} infinite`,
+                      boxShadow: `
+                        0 24px 60px ${p.glow},
+                        0 8px 20px rgba(0,0,0,0.5),
+                        inset 0 1px 0 rgba(255,255,255,0.2)
+                      `,
+                    }}
+                  >
+                    {/* Inner icon */}
+                    <div style={{
+                      position: 'relative',
+                      zIndex: 4,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      filter: 'drop-shadow(0 2px 8px rgba(0,0,0,0.4))',
+                    }}>
+                      {p.icon}
+                    </div>
+                  </div>
+
+                  {/* Label */}
+                  <span style={{
+                    fontSize: isCenter ? '0.75rem' : '0.7rem',
+                    color: isCenter ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.35)',
+                    fontWeight: '500',
+                    letterSpacing: '0.04em',
+                    textTransform: 'uppercase',
+                    whiteSpace: 'nowrap',
+                  }}>
+                    {p.name}
+                  </span>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+
+        {/* ─── HEADLINE ─── */}
+        <div style={{
+          position: 'relative',
+          zIndex: 2,
+          maxWidth: '780px',
+          animation: visible ? 'slideUp 0.9s cubic-bezier(0.22,1,0.36,1) 0.5s both' : 'none',
+        }}>
           <div style={{
-            fontSize: '0.75rem',
+            fontSize: '0.72rem',
             fontWeight: '600',
-            letterSpacing: '0.2em',
+            letterSpacing: '0.22em',
             color: '#e8c547',
             textTransform: 'uppercase',
-            marginBottom: '2rem',
+            marginBottom: '1.75rem',
             display: 'flex',
             alignItems: 'center',
-            gap: '10px',
+            justifyContent: 'center',
+            gap: '12px',
           }}>
-            <div style={{ width: '30px', height: '1px', background: '#e8c547' }} />
-            Website Acquisition Marketplace
+            <div style={{ width: '24px', height: '1px', background: '#e8c547' }} />
+            Website Acquisition, Automated
+            <div style={{ width: '24px', height: '1px', background: '#e8c547' }} />
           </div>
 
-          <div style={{ overflow: 'hidden', marginBottom: '0.25rem' }}>
-            <h1 style={{ margin: 0, fontSize: 'clamp(3.5rem, 8vw, 7rem)', fontWeight: '900', letterSpacing: '-0.03em', lineHeight: 0.95 }}>
-              {'The place'.split(' ').map((w, i) => (
-                <span key={i} className="hero-word" style={{ display: 'inline-block', marginRight: '0.25em' }}>{w}</span>
-              ))}
-            </h1>
-          </div>
-          <div style={{ overflow: 'hidden', marginBottom: '0.25rem' }}>
-            <h1 style={{ margin: 0, fontSize: 'clamp(3.5rem, 8vw, 7rem)', fontWeight: '900', letterSpacing: '-0.03em', lineHeight: 0.95, color: '#e8c547' }}>
-              {'websites change'.split(' ').map((w, i) => (
-                <span key={i} className="hero-word" style={{ display: 'inline-block', marginRight: '0.25em' }}>{w}</span>
-              ))}
-            </h1>
-          </div>
-          <div style={{ overflow: 'hidden', marginBottom: '3rem' }}>
-            <h1 style={{ margin: 0, fontSize: 'clamp(3.5rem, 8vw, 7rem)', fontWeight: '900', letterSpacing: '-0.03em', lineHeight: 0.95 }}>
-              {'hands.'.split(' ').map((w, i) => (
-                <span key={i} className="hero-word" style={{ display: 'inline-block', marginRight: '0.25em' }}>{w}</span>
-              ))}
-            </h1>
-          </div>
+          <h1 style={{
+            fontSize: 'clamp(3rem, 7vw, 6rem)',
+            fontWeight: '900',
+            letterSpacing: '-0.035em',
+            lineHeight: 0.95,
+            margin: '0 0 1.75rem',
+          }}>
+            The place{' '}
+            <span style={{
+              background: 'linear-gradient(135deg, #e8c547 0%, #f0d060 40%, #c8a030 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}>
+              websites
+            </span>
+            <br />change hands.
+          </h1>
 
-          <p className="hero-sub" style={{
-            fontSize: '1.15rem',
-            color: 'rgba(255,255,255,0.45)',
-            maxWidth: '520px',
-            lineHeight: 1.7,
+          <p style={{
+            fontSize: '1.1rem',
+            color: 'rgba(255,255,255,0.38)',
+            lineHeight: 1.75,
             marginBottom: '2.5rem',
+            maxWidth: '520px',
+            margin: '0 auto 2.5rem',
           }}>
-            Merj connects buyers and sellers of web assets across every major platform.
-            Every transaction is verified, secured, and executed automatically.
+            Buy or sell any live website — WordPress, Blogger, Vercel, Netlify,
+            custom domains, locally hosted apps. Ownership transfers automatically.
+            Payment moves only when your site does.
           </p>
 
-          <div className="hero-cta" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
             <button className="btn-gold" onClick={() => router.push('/listings')}>
-              Browse assets
+              Browse websites
             </button>
             <button className="btn-ghost" onClick={() => router.push('/login')}>
               Start selling
@@ -511,291 +514,192 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Scroll indicator */}
+        {/* Down arrow */}
         <div style={{
           position: 'absolute',
-          bottom: '2rem',
+          bottom: '2.5rem',
           left: '50%',
           transform: 'translateX(-50%)',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          gap: '8px',
-          color: 'rgba(255,255,255,0.2)',
-          fontSize: '0.7rem',
-          letterSpacing: '0.15em',
-          textTransform: 'uppercase',
+          gap: '6px',
+          color: 'rgba(255,255,255,0.15)',
           zIndex: 2,
         }}>
-          <div style={{ width: '1px', height: '40px', background: 'rgba(255,255,255,0.15)' }} />
-          Scroll
+          <div style={{ width: '1px', height: '40px', background: 'rgba(255,255,255,0.1)' }} />
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="rgba(255,255,255,0.15)">
+            <path d="M6 8L1 3h10L6 8z"/>
+          </svg>
         </div>
       </section>
 
-      {/* ─── TICKER ─── */}
+      {/* ─── CONNECTORS STRIP ─── */}
       <div style={{
-        borderTop: '1px solid rgba(255,255,255,0.07)',
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
-        padding: '1rem 0',
-        overflow: 'hidden',
+        borderTop: '1px solid rgba(255,255,255,0.06)',
+        borderBottom: '1px solid rgba(255,255,255,0.06)',
+        padding: '2rem 3rem',
         background: 'rgba(255,255,255,0.01)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '0.75rem',
+        flexWrap: 'wrap',
       }}>
-        <div className="ticker-track" style={{ display: 'flex', width: 'max-content', gap: '3rem', alignItems: 'center' }}>
-          {[...Array(2)].map((_, rep) => (
-            connectors.concat([
-              { name: 'More coming', color: '#e8c547', icon: <span style={{ fontSize: '18px' }}>+</span> }
-            ] as any).map((c, i) => (
-              <div key={`${rep}-${i}`} style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                color: 'rgba(255,255,255,0.35)',
-                fontSize: '0.85rem',
-                fontWeight: '500',
-                letterSpacing: '0.05em',
-                whiteSpace: 'nowrap',
-              }}>
-                <span style={{ opacity: 0.7 }}>{c.icon}</span>
-                {c.name}
-                <span style={{ color: 'rgba(255,255,255,0.1)', marginLeft: '1rem' }}>—</span>
-              </div>
-            ))
-          ))}
-        </div>
+        <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: '0.75rem', letterSpacing: '0.15em', textTransform: 'uppercase', marginRight: '1rem' }}>
+          Sell on
+        </span>
+        {['WordPress', 'Blogger', 'Vercel', 'Netlify', 'GitHub Pages', 'Shopify', 'Wix', 'Squarespace', 'Custom Domain', 'Any live URL'].map((name, i) => (
+          <span key={name} style={{
+            padding: '5px 14px',
+            border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: '100px',
+            fontSize: '0.78rem',
+            color: 'rgba(255,255,255,0.35)',
+            fontWeight: '500',
+            whiteSpace: 'nowrap',
+          }}>
+            {name}
+          </span>
+        ))}
+        <span style={{
+          padding: '5px 14px',
+          border: '1px dashed rgba(232,197,71,0.3)',
+          borderRadius: '100px',
+          fontSize: '0.78rem',
+          color: 'rgba(232,197,71,0.5)',
+          fontWeight: '500',
+        }}>
+          + more soon
+        </span>
       </div>
 
-      {/* ─── SECTION 2: CONNECTORS ─── */}
-      <section className="connectors-section" style={{
-        padding: '7rem 3rem',
-        maxWidth: '1100px',
-        margin: '0 auto',
-      }}>
-        <div style={{ marginBottom: '4rem' }}>
+      {/* ─── HOW IT WORKS ─── */}
+      <section style={{ padding: '7rem 3rem', maxWidth: '1100px', margin: '0 auto' }}>
+        <div style={{ marginBottom: '5rem', textAlign: 'center' }}>
           <div style={{
-            fontSize: '0.7rem',
-            fontWeight: '600',
-            letterSpacing: '0.2em',
-            color: 'rgba(255,255,255,0.3)',
-            textTransform: 'uppercase',
+            fontSize: '0.7rem', fontWeight: '600', letterSpacing: '0.2em',
+            color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase',
             marginBottom: '1.25rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px',
           }}>
-            <div style={{ width: '20px', height: '1px', background: 'rgba(255,255,255,0.3)' }} />
-            Supported platforms
-          </div>
-          <h2 style={{
-            fontSize: 'clamp(2rem, 4vw, 3.5rem)',
-            fontWeight: '800',
-            letterSpacing: '-0.03em',
-            margin: '0 0 1rem',
-            lineHeight: 1.1,
-          }}>
-            Sell on any platform.<br />
-            <span style={{ color: 'rgba(255,255,255,0.3)' }}>We handle the rest.</span>
-          </h2>
-          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '1rem', maxWidth: '480px', lineHeight: 1.7 }}>
-            From global platforms to your own custom-hosted site — if it has a live URL, you can sell it on Merj. More connectors added every month.
-          </p>
-        </div>
-
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
-          gap: '1rem',
-        }}>
-          {connectors.map((c) => (
-            <div key={c.name} className="connector-card">
-              <div style={{
-                width: '52px',
-                height: '52px',
-                borderRadius: '10px',
-                background: `${c.color}12`,
-                border: `1px solid ${c.color}25`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
-                {c.icon}
-              </div>
-              <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.55)', fontWeight: '500', textAlign: 'center' }}>
-                {c.name}
-              </span>
-            </div>
-          ))}
-          <div className="connector-card" style={{ borderStyle: 'dashed', opacity: 0.4 }}>
-            <div style={{
-              width: '52px',
-              height: '52px',
-              borderRadius: '10px',
-              border: '1px dashed rgba(255,255,255,0.2)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '1.5rem',
-              color: 'rgba(255,255,255,0.3)',
-            }}>+</div>
-            <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)', textAlign: 'center' }}>
-              Your platform
-            </span>
-          </div>
-        </div>
-      </section>
-
-      {/* ─── DIVIDER ─── */}
-      <div style={{ height: '1px', background: 'rgba(255,255,255,0.05)', margin: '0 3rem' }} />
-
-      {/* ─── SECTION 3: HOW IT WORKS ─── */}
-      <section className="steps-section" style={{
-        padding: '7rem 3rem',
-        maxWidth: '1100px',
-        margin: '0 auto',
-      }}>
-        <div style={{ marginBottom: '5rem' }}>
-          <div style={{
-            fontSize: '0.7rem',
-            fontWeight: '600',
-            letterSpacing: '0.2em',
-            color: 'rgba(255,255,255,0.3)',
-            textTransform: 'uppercase',
-            marginBottom: '1.25rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-          }}>
-            <div style={{ width: '20px', height: '1px', background: 'rgba(255,255,255,0.3)' }} />
+            <div style={{ width: '20px', height: '1px', background: 'rgba(255,255,255,0.25)' }} />
             The process
+            <div style={{ width: '20px', height: '1px', background: 'rgba(255,255,255,0.25)' }} />
           </div>
-          <h2 style={{
-            fontSize: 'clamp(2rem, 4vw, 3.5rem)',
-            fontWeight: '800',
-            letterSpacing: '-0.03em',
-            margin: 0,
-            lineHeight: 1.1,
-          }}>
-            Simple for both sides.<br />
-            <span style={{ color: 'rgba(255,255,255,0.3)' }}>Airtight for everyone.</span>
+          <h2 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: '800', letterSpacing: '-0.03em', margin: '0' }}>
+            Simple. Secure. Automatic.
           </h2>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
-          {steps.map((step, i) => (
-            <div key={step.number} className="step-item" style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: '4rem',
-              alignItems: 'center',
-              padding: '4rem 0',
-              borderTop: '1px solid rgba(255,255,255,0.06)',
-              position: 'relative',
-            }}>
-              <div>
-                <div style={{
-                  fontSize: '0.7rem',
-                  fontWeight: '600',
-                  letterSpacing: '0.2em',
-                  color: '#e8c547',
-                  textTransform: 'uppercase',
-                  marginBottom: '1.5rem',
-                }}>
-                  Step {step.number}
-                </div>
-                <h3 style={{
-                  fontSize: 'clamp(1.5rem, 2.5vw, 2rem)',
-                  fontWeight: '700',
-                  letterSpacing: '-0.02em',
-                  margin: '0 0 1rem',
-                }}>
-                  {step.title}
-                </h3>
-              </div>
-              <div>
-                <p style={{
-                  color: 'rgba(255,255,255,0.45)',
-                  fontSize: '1rem',
-                  lineHeight: 1.8,
-                  margin: 0,
-                }}>
-                  {step.body}
-                </p>
-              </div>
-              <div className="step-number">{step.number}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ─── SECTION 4: TRUST STRIP ─── */}
-      <section style={{
-        background: 'rgba(232,197,71,0.04)',
-        borderTop: '1px solid rgba(232,197,71,0.1)',
-        borderBottom: '1px solid rgba(232,197,71,0.1)',
-        padding: '4rem 3rem',
-      }}>
-        <div style={{
-          maxWidth: '1100px',
-          margin: '0 auto',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '3rem',
-        }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5px', background: 'rgba(255,255,255,0.05)', borderRadius: '16px', overflow: 'hidden' }}>
           {[
-            { title: 'Ownership verified', body: 'We check real ownership through each platform\'s API before any listing goes live.' },
-            { title: 'Payment secured first', body: 'Buyer\'s money is locked the moment checkout is complete. Sellers cannot access it until transfer is done.' },
-            { title: 'Transfer or refund', body: 'If the transfer doesn\'t complete, the buyer gets every cent back. Automatically.' },
-            { title: 'No middlemen', body: 'The entire handover — admin access, credentials, project files — is handled by code, not people.' },
-          ].map((item) => (
-            <div key={item.title}>
-              <div style={{ width: '20px', height: '2px', background: '#e8c547', marginBottom: '1.25rem' }} />
-              <h4 style={{ fontSize: '0.95rem', fontWeight: '700', margin: '0 0 0.75rem', letterSpacing: '-0.01em' }}>
-                {item.title}
-              </h4>
-              <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.9rem', lineHeight: 1.7, margin: 0 }}>
-                {item.body}
+            { n: '01', title: 'List your site', body: 'Connect via any of our platform integrations. We verify real ownership through each platform\'s API — no manual screenshots or trust needed.', icon: '🔗' },
+            { n: '02', title: 'Buyer pays. Money locks.', body: "The buyer's payment is secured the moment they check out. It's held — neither party can access it until the transfer is verified complete.", icon: '🔒' },
+            { n: '03', title: 'Transfer. Then payment.', body: 'Admin access, credentials, and project files transfer automatically through code. Only after confirmation does your money release.', icon: '⚡' },
+          ].map((step) => (
+            <div key={step.n} style={{
+              background: '#0a0a0a',
+              padding: '2.5rem',
+              position: 'relative',
+              overflow: 'hidden',
+            }}>
+              <div style={{
+                position: 'absolute', top: '1rem', right: '1.5rem',
+                fontSize: '4.5rem', fontWeight: '900',
+                color: 'rgba(255,255,255,0.025)',
+                letterSpacing: '-0.04em',
+                lineHeight: 1,
+                userSelect: 'none',
+              }}>{step.n}</div>
+              <div style={{ fontSize: '1.8rem', marginBottom: '1rem' }}>{step.icon}</div>
+              <div style={{ width: '24px', height: '2px', background: '#e8c547', marginBottom: '1.25rem' }} />
+              <h3 style={{ fontSize: '1.05rem', fontWeight: '700', margin: '0 0 0.75rem', letterSpacing: '-0.01em' }}>
+                {step.title}
+              </h3>
+              <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '0.9rem', lineHeight: 1.75, margin: 0 }}>
+                {step.body}
               </p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* ─── SECTION 5: CTA ─── */}
-      <section className="cta-section" style={{
-        padding: '10rem 3rem',
+      {/* ─── STATS ─── */}
+      <section style={{
+        background: 'rgba(232,197,71,0.03)',
+        borderTop: '1px solid rgba(232,197,71,0.08)',
+        borderBottom: '1px solid rgba(232,197,71,0.08)',
+        padding: '4rem 3rem',
+      }}>
+        <div style={{
+          maxWidth: '900px', margin: '0 auto',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap: '1px',
+          background: 'rgba(255,255,255,0.05)',
+          borderRadius: '12px',
+          overflow: 'hidden',
+        }}>
+          {[
+            { value: 'Any platform', label: 'If it has a live URL' },
+            { value: '100% Auto', label: 'No manual handoffs' },
+            { value: 'Transfer first', label: 'Pay only on success' },
+            { value: 'Free to list', label: 'Commission on sale only' },
+          ].map((s) => (
+            <div key={s.label} className="stat-item" style={{
+              background: '#050505',
+              padding: '2rem 1.5rem',
+              textAlign: 'center',
+              border: '1px solid transparent',
+              transition: 'border-color 0.2s ease',
+            }}>
+              <div style={{ fontSize: '1.3rem', fontWeight: '800', color: '#e8c547', marginBottom: '0.5rem', letterSpacing: '-0.02em' }}>
+                {s.value}
+              </div>
+              <div style={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.3)', fontWeight: '500' }}>
+                {s.label}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ─── CTA ─── */}
+      <section style={{
+        padding: '9rem 2rem',
         textAlign: 'center',
         position: 'relative',
         overflow: 'hidden',
       }}>
         <div style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'radial-gradient(ellipse at center, rgba(232,197,71,0.06) 0%, transparent 65%)',
-          zIndex: 0,
+          position: 'absolute', inset: 0,
+          background: 'radial-gradient(ellipse at center, rgba(232,197,71,0.05) 0%, transparent 60%)',
         }} />
-        <div className="cta-content" style={{ position: 'relative', zIndex: 1 }}>
+        <div style={{ position: 'relative', zIndex: 1 }}>
           <h2 style={{
-            fontSize: 'clamp(2.5rem, 6vw, 5rem)',
+            fontSize: 'clamp(2.5rem, 6vw, 4.5rem)',
             fontWeight: '900',
-            letterSpacing: '-0.03em',
-            margin: '0 0 1.5rem',
+            letterSpacing: '-0.035em',
+            margin: '0 0 1.25rem',
             lineHeight: 1,
           }}>
             Your site has value.<br />
-            <span style={{ color: '#e8c547' }}>Let's move it.</span>
+            <span style={{ color: '#e8c547' }}>Let&apos;s move it.</span>
           </h2>
           <p style={{
-            color: 'rgba(255,255,255,0.4)',
-            fontSize: '1.1rem',
-            marginBottom: '3rem',
-            maxWidth: '450px',
-            margin: '0 auto 3rem',
+            color: 'rgba(255,255,255,0.35)',
+            fontSize: '1rem',
+            marginBottom: '2.5rem',
+            maxWidth: '400px',
+            margin: '0 auto 2.5rem',
             lineHeight: 1.7,
           }}>
-            List for free. Get paid when your site sells. No fees until the deal is done.
+            Free to list. No fees until your site sells. Fully automated.
           </p>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
             <button className="btn-gold" onClick={() => router.push('/login')}>
-              List your site — it's free
+              List your site — free
             </button>
             <button className="btn-ghost" onClick={() => router.push('/listings')}>
               Browse listings
@@ -806,42 +710,38 @@ export default function Home() {
 
       {/* ─── FOOTER ─── */}
       <footer style={{
-        borderTop: '1px solid rgba(255,255,255,0.06)',
-        padding: '2.5rem 3rem',
+        borderTop: '1px solid rgba(255,255,255,0.05)',
+        padding: '2rem 3rem',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
         flexWrap: 'wrap',
         gap: '1rem',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div style={{
-            width: '22px',
-            height: '22px',
-            background: '#e8c547',
-            borderRadius: '3px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontWeight: '900',
-            fontSize: '11px',
-            color: '#000',
+            width: '20px', height: '20px', background: '#e8c547',
+            borderRadius: '4px', display: 'flex', alignItems: 'center',
+            justifyContent: 'center', fontWeight: '900', fontSize: '10px', color: '#000',
           }}>M</div>
           <span style={{ fontWeight: '600', fontSize: '0.9rem' }}>Merj</span>
         </div>
-        <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: '0.8rem', margin: 0 }}>
+        <p style={{ color: 'rgba(255,255,255,0.15)', fontSize: '0.78rem', margin: 0 }}>
           © 2025 Merj · Website acquisition, done right.
         </p>
         <div style={{ display: 'flex', gap: '1.5rem' }}>
           {['Browse', 'Sell', 'Sign in'].map(l => (
-            <button key={l} onClick={() => router.push(l === 'Browse' ? '/listings' : '/login')}
-              style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.25)', cursor: 'pointer', fontSize: '0.8rem', padding: 0, fontFamily: 'inherit' }}>
+            <button key={l}
+              onClick={() => router.push(l === 'Browse' ? '/listings' : '/login')}
+              style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.2)', cursor: 'pointer', fontSize: '0.78rem', padding: 0, fontFamily: 'inherit', transition: 'color 0.2s' }}
+              onMouseEnter={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.6)')}
+              onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.2)')}
+            >
               {l}
             </button>
           ))}
         </div>
       </footer>
-
     </div>
   )
 }
