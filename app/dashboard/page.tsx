@@ -83,7 +83,7 @@ export default function DashboardPage() {
           marginBottom: '1.5rem'
         }}>
           <h2 style={{ color: '#4ade80', fontSize: '1rem', fontWeight: '600', margin: '0 0 0.5rem 0' }}>
-            ✅ Auth is working!
+            🎉 Welcome to Merj!
           </h2>
           <p style={{ color: '#888', fontSize: '0.9rem', margin: 0 }}>
             Your account is saved in Firebase Firestore.
