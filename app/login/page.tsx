@@ -26,10 +26,33 @@ const base: React.CSSProperties = {
   background: '#000',
   minHeight: '100vh',
   display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
+  alignItems: 'center' as const,
+  justifyContent: 'center' as const,
   padding: '1.5rem',
   fontFamily: '"SF Pro Display",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',
+}
+
+const card: React.CSSProperties = {
+  background: '#0a0a0a',
+  border: '1px solid rgba(255,255,255,.08)',
+  borderRadius: '20px',
+  padding: '2.25rem',
+  width: '100%',
+  maxWidth: '420px',
+}
+
+const inp: React.CSSProperties = {
+  width: '100%',
+  padding: '.85rem 1rem',
+  background: '#111',
+  border: '1px solid rgba(255,255,255,.08)',
+  borderRadius: '10px',
+  color: '#fff',
+  fontSize: '.95rem',
+  outline: 'none',
+  fontFamily: 'inherit',
+  transition: 'border-color .2s',
+  boxSizing: 'border-box' as const,
 }
 
 const card: React.CSSProperties = {
