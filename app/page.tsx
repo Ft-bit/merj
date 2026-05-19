@@ -54,23 +54,21 @@ const PLATFORMS = [
 ]
 
 /* ─── FLOATING HERO ICONS ─── */
-const FloatIcon = ({ p, delay, size = 82 }: { p: typeof PLATFORMS[0], delay: number, size?: number }) => (
+const FloatIcon = ({ p, size = 82 }: { p: (typeof PLATFORMS)[0]; size?: number }) => (
   <div style={{
     width: size, height: size, borderRadius: '22px',
     background: p.bg,
     boxShadow: `0 20px 50px ${p.glow}55, inset 0 1px 0 rgba(255,255,255,.22)`,
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     position: 'relative', overflow: 'hidden', cursor: 'pointer',
-    animation: `float ${3.5 + delay * .3}s ease-in-out ${delay * 140}ms infinite`,
-    transition: 'transform .3s, filter .3s',
+    animation: `float ${3.5}s ease-in-out infinite`,
     flexShrink: 0,
   }}>
-    {/* Glass top reflection */}
-    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '50%', background: 'linear-gradient(180deg,rgba(255,255,255,.22) 0%,transparent 100%)', borderRadius: '22px 22px 0 0', zIndex: 2, pointerEvents: 'none' }} />
-    <div style={{ position: 'absolute', inset: 0, border: '1px solid rgba(255,255,255,.2)', borderRadius: '22px', zIndex: 3, pointerEvents: 'none' }} />
+    <div style={{ position:'absolute', top:0, left:0, right:0, height:'50%', background:'linear-gradient(180deg,rgba(255,255,255,.22) 0%,transparent 100%)', borderRadius:'22px 22px 0 0', zIndex:2, pointerEvents:'none' }} />
+    <div style={{ position:'absolute', inset:0, border:'1px solid rgba(255,255,255,.2)', borderRadius:'22px', zIndex:3, pointerEvents:'none' }} />
     {p.img
-      ? <img src={p.img} alt={p.name} style={{ width: size * .6, height: size * .6, objectFit: 'contain', position: 'relative', zIndex: 4, filter: 'drop-shadow(0 2px 8px rgba(0,0,0,.5))' }} />
-      : <svg viewBox="0 0 24 24" width={size*.55} height={size*.55} fill="none" stroke="white" strokeWidth="1.5" style={{ position: 'relative', zIndex: 4 }}>
+      ? <img src={p.img} alt={p.name} width={Math.round(size * .6)} height={Math.round(size * .6)} style={{ objectFit:'contain', position:'relative', zIndex:4, filter:'drop-shadow(0 2px 8px rgba(0,0,0,.5))' }} />
+      : <svg viewBox="0 0 24 24" width={Math.round(size*.55)} height={Math.round(size*.55)} fill="none" stroke="white" strokeWidth="1.5" style={{ position:'relative', zIndex:4 }}>
           <circle cx="12" cy="12" r="10"/>
           <path d="M12 2a14.5 14.5 0 0 1 4 10 14.5 14.5 0 0 1-4 10 14.5 14.5 0 0 1-4-10A14.5 14.5 0 0 1 12 2z"/>
           <path d="M2 12h20"/>
