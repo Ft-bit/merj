@@ -13,7 +13,7 @@ import {
   GoogleAuthProvider,
 } from 'firebase/auth'
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore'
-import { auth, db, googleProvider } from '../lib/firebase'
+import { auth, db } from '../lib/firebase'
 
 interface AuthContextType {
   user: User | null
@@ -63,7 +63,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     provider.addScope('email')
     provider.addScope('profile')
     const result = await signInWithPopup(auth, provider)
-    // Google accounts are always verified
     const userRef = doc(db, 'users', result.user.uid)
     const userSnap = await getDoc(userRef)
     if (!userSnap.exists()) {
@@ -89,9 +88,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const registerWithEmail = async (email: string, password: string, name: string) => {
     const result = await createUserWithEmailAndPassword(auth, email, password)
-    // Send verification email immediately
     await sendEmailVerification(result.user, {
-      url: `${window.location.origin}/dashboard`,
+      url: typeof window !== 'undefined' ? `${window.location.origin}/dashboard` : '',
     })
     const userRef = doc(db, 'users', result.user.uid)
     await setDoc(userRef, {
@@ -107,9 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const resendVerification = async () => {
     if (auth.currentUser && !auth.currentUser.emailVerified) {
-      await sendEmailVerification(auth.currentUser, {
-        url: `${window.location.origin}/dashboard`,
-      })
+      await sendEmailVerification(auth.currentUser)
     }
   }
 
