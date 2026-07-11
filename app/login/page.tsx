@@ -37,7 +37,7 @@ function GoogleIcon() {
 }
 
 export default function LoginPage() {
-  const { loginWithGoogle, loginWithEmail, registerWithEmail, resendVerification, checkVerification } = useAuth()
+  const { loginWithGoogle, loginWithEmail, registerWithEmail, resendVerification, checkVerification, resetPassword } = useAuth()
   const router = useRouter()
 
   const [panel, setPanel] = useState<'signin' | 'register'>('signin')
@@ -52,6 +52,10 @@ export default function LoginPage() {
   const [resent, setResent] = useState(false)
   const [panelAnim, setPanelAnim] = useState(false)
 
+  // NEW: forgot password state
+  const [resetSent, setResetSent] = useState(false)
+  const [resetLoading, setResetLoading] = useState(false)
+
   const isRegister = panel === 'register'
 
   useEffect(() => {
@@ -63,6 +67,7 @@ export default function LoginPage() {
     setTimeout(() => {
       setPanel(to)
       setError('')
+      setResetSent(false)
       setPanelAnim(false)
     }, 300)
   }
@@ -128,6 +133,28 @@ export default function LoginPage() {
       setError('Not verified yet. Please check your inbox.')
     }
     setLoading(false)
+  }
+
+  // NEW: forgot password handler. Uses whatever is currently typed in the
+  // email field — if it's empty, asks the user to type it first.
+  const handleForgotPassword = async () => {
+    setError('')
+    setResetSent(false)
+    if (!email) {
+      setError('Enter your email above first, then click "Forgot?"')
+      return
+    }
+    setResetLoading(true)
+    try {
+      await resetPassword(email)
+      setResetSent(true)
+    } catch (e: any) {
+      const code = e?.code || ''
+      if (code === 'auth/user-not-found') setError('No account found with this email.')
+      else if (code === 'auth/invalid-email') setError('That email address looks invalid.')
+      else setError('Could not send reset email. Please try again.')
+    }
+    setResetLoading(false)
   }
 
   // ── VERIFY SCREEN ──
@@ -236,10 +263,6 @@ export default function LoginPage() {
         }
         .back-btn:hover{color:#fff;background:rgba(255,255,255,.1)}
 
-        /* FIX: mobile toggle is hidden by default (desktop uses the right-panel
-           button instead), and only revealed once the right-panel itself is
-           hidden below 860px. Previously this was permanently display:none,
-           so mobile users had NO way to switch between sign in / register. */
         .mobile-toggle{ display:none; }
 
         @media(max-width:860px){
@@ -326,8 +349,13 @@ export default function LoginPage() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '.4rem' }}>
                   <label style={{ fontSize: '.75rem', fontWeight: '600', color: 'rgba(255,255,255,.35)', letterSpacing: '.04em', textTransform: 'uppercase' }}>Password</label>
                   {!isRegister && (
-                    <button type="button" style={{ background: 'none', border: 'none', color: `${GREEN}88`, fontSize: '.8rem', cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}>
-                      Forgot?
+                    <button
+                      type="button"
+                      onClick={handleForgotPassword}
+                      disabled={resetLoading}
+                      style={{ background: 'none', border: 'none', color: `${GREEN}88`, fontSize: '.8rem', cursor: 'pointer', fontFamily: 'inherit', padding: 0 }}
+                    >
+                      {resetLoading ? 'Sending...' : 'Forgot?'}
                     </button>
                   )}
                 </div>
@@ -338,6 +366,14 @@ export default function LoginPage() {
                   </button>
                 </div>
               </div>
+
+              {/* NEW: password reset confirmation */}
+              {resetSent && !isRegister && (
+                <div style={{ padding: '.75rem 1rem', background: 'rgba(0,230,118,.07)', border: '1px solid rgba(0,230,118,.18)', borderRadius: '8px', color: GREEN, fontSize: '.83rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '1rem' }}>✓</span>
+                  Reset link sent to {email}. Check your inbox.
+                </div>
+              )}
 
               {error && (
                 <div style={{ padding: '.75rem 1rem', background: 'rgba(248,113,113,.07)', border: '1px solid rgba(248,113,113,.18)', borderRadius: '8px', color: '#fca5a5', fontSize: '.83rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -354,8 +390,6 @@ export default function LoginPage() {
               </button>
             </form>
 
-            {/* Mobile toggle — FIX: was hardcoded display:none, now shown only
-                on small screens where the right-panel toggle is hidden */}
             <p className="mobile-toggle" style={{ textAlign: 'center', marginTop: '1.5rem', color: 'rgba(255,255,255,.3)', fontSize: '.85rem' }}>
               {isRegister ? 'Already have an account? ' : "Don't have an account? "}
               <button onClick={() => switchPanel(isRegister ? 'signin' : 'register')} style={{ background: 'none', border: 'none', color: GREEN, cursor: 'pointer', fontWeight: '600', fontFamily: 'inherit', fontSize: '.85rem' }}>
@@ -385,12 +419,10 @@ export default function LoginPage() {
             animation: 'panelIn .7s cubic-bezier(.22,1,.36,1)',
           }}
         >
-          {/* Decorative rings */}
           <div style={{ position: 'absolute', width: '320px', height: '320px', borderRadius: '50%', border: '1px solid rgba(0,230,118,.1)', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', pointerEvents: 'none' }} />
           <div style={{ position: 'absolute', width: '220px', height: '220px', borderRadius: '50%', border: '1px solid rgba(0,230,118,.08)', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', pointerEvents: 'none' }} />
           <div style={{ position: 'absolute', width: '400px', height: '400px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,230,118,.08) 0%, transparent 70%)', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', pointerEvents: 'none' }} />
 
-          {/* Floating M logo */}
           <div style={{ width: '80px', height: '80px', background: 'rgba(255,255,255,.1)', backdropFilter: 'blur(10px)', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', fontWeight: '900', color: '#fff', marginBottom: '2rem', border: '1px solid rgba(255,255,255,.15)', animation: 'float 3s ease-in-out infinite', position: 'relative', zIndex: 1, boxShadow: '0 20px 50px rgba(0,0,0,.4)' }}>
             M
           </div>
@@ -413,7 +445,6 @@ export default function LoginPage() {
             </button>
           </div>
 
-          {/* Asset type tags at bottom */}
           <div style={{ position: 'absolute', bottom: '2rem', left: 0, right: 0, display: 'flex', gap: '.5rem', flexWrap: 'wrap', justifyContent: 'center', padding: '0 1.5rem', zIndex: 1 }}>
             {['Websites', 'X Accounts', 'Instagram', 'Stores', 'More...'].map((tag, i) => (
               <span key={tag} style={{ padding: '.25rem .75rem', background: 'rgba(0,230,118,.1)', border: '1px solid rgba(0,230,118,.15)', borderRadius: '100px', fontSize: '.72rem', color: 'rgba(0,230,118,.8)', fontWeight: '600' }}>
