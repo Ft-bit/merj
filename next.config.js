@@ -6,10 +6,10 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: false,
   },
-  // FIX: Next.js/Vercel's default Cross-Origin-Opener-Policy header blocks
-  // Firebase's signInWithPopup from detecting when the Google sign-in popup
-  // closes, causing it to fail/hang. This header override allows popups
-  // to communicate with the opener window while still being reasonably secure.
+  // Allows Firebase's signInWithPopup to detect when the Google sign-in
+  // popup window closes. Without this, Vercel/Next.js's default
+  // Cross-Origin-Opener-Policy header blocks that detection, causing
+  // popup sign-in to hang or report a generic failure.
   async headers() {
     return [
       {
