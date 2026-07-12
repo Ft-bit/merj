@@ -2,7 +2,8 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import {
   onAuthStateChanged,
-  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   sendEmailVerification,
@@ -30,6 +31,23 @@ interface AuthContextType {
 
 export const AuthContext = createContext<AuthContextType | null>(null)
 
+// Pulled out so both the redirect-result handler and the popup-era code
+// path (if ever needed again) create the user doc the same way.
+async function ensureUserDoc(u: User) {
+  const ref = doc(db, 'users', u.uid)
+  const snap = await getDoc(ref)
+  if (!snap.exists()) {
+    await setDoc(ref, {
+      uid: u.uid,
+      email: u.email,
+      name: u.displayName || 'User',
+      photo: u.photoURL || '',
+      createdAt: serverTimestamp(),
+      role: 'user',
+    }, { merge: true })
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
@@ -42,21 +60,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => unsub()
   }, [])
 
+  // FIX: signInWithPopup relies on the main page reading window.closed on
+  // the popup, which Vercel/Next.js's Cross-Origin-Opener-Policy header
+  // blocks — causing sign-in to hang or report a generic failure.
+  // signInWithRedirect avoids this entirely: it navigates the whole page
+  // to Google and back, so there's no popup window to track.
+  //
+  // This handles the return trip from Google. It runs once on every page
+  // load; if the user just came back from a Google redirect, it resolves
+  // with their result and creates the Firestore doc if needed.
+  useEffect(() => {
+    getRedirectResult(auth)
+      .then(async (result) => {
+        if (result?.user) {
+          await ensureUserDoc(result.user)
+        }
+      })
+      .catch(() => {
+        // Errors here are surfaced to the user via the login page's own
+        // error state on next interaction; nothing to do silently here.
+      })
+  }, [])
+
   const loginWithGoogle = async () => {
     const provider = new GoogleAuthProvider()
-    const result = await signInWithPopup(auth, provider)
-    const ref = doc(db, 'users', result.user.uid)
-    const snap = await getDoc(ref)
-    if (!snap.exists()) {
-      await setDoc(ref, {
-        uid: result.user.uid,
-        email: result.user.email,
-        name: result.user.displayName || 'User',
-        photo: result.user.photoURL || '',
-        createdAt: serverTimestamp(),
-        role: 'user',
-      }, { merge: true })
-    }
+    await signInWithRedirect(auth, provider)
+    // Execution pauses here — the browser navigates away to Google.
+    // When it comes back, the useEffect above (getRedirectResult) picks up.
   }
 
   const loginWithEmail = async (email: string, password: string) => {
@@ -90,7 +120,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return false
   }
 
-  // NEW: sends a password reset link to the given email via Firebase.
   const resetPassword = async (email: string) => {
     await sendPasswordResetEmail(auth, email)
   }
