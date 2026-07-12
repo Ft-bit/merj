@@ -37,7 +37,7 @@ function GoogleIcon() {
 }
 
 export default function LoginPage() {
-  const { user, loginWithGoogle, loginWithEmail, registerWithEmail, resendVerification, checkVerification, resetPassword } = useAuth()
+  const { user, redirectLoading, redirectError, loginWithGoogle, loginWithEmail, registerWithEmail, resendVerification, checkVerification, resetPassword } = useAuth()
   const router = useRouter()
 
   const [panel, setPanel] = useState<'signin' | 'register'>('signin')
@@ -61,12 +61,16 @@ export default function LoginPage() {
     setTimeout(() => setMounted(true), 60)
   }, [])
 
-  // FIX: after a redirect-based Google sign-in completes, AuthContext's
-  // getRedirectResult resolves and onAuthStateChanged fires, populating
-  // `user`. This effect catches that and navigates to the dashboard.
+  // Only auto-redirect once the user is both signed in AND verified.
   useEffect(() => {
-    if (user) router.push('/dashboard')
+    if (user && user.emailVerified) router.push('/dashboard')
   }, [user, router])
+
+  // FIX: surface any error from a failed/incomplete redirect sign-in
+  // (previously silently swallowed) into the normal error banner.
+  useEffect(() => {
+    if (redirectError) setError(redirectError)
+  }, [redirectError])
 
   const switchPanel = (to: 'signin' | 'register') => {
     setPanelAnim(true)
@@ -78,11 +82,6 @@ export default function LoginPage() {
     }, 300)
   }
 
-  // FIX: switched from signInWithPopup to signInWithRedirect (handled inside
-  // loginWithGoogle in AuthContext) to avoid Vercel/Next.js's default
-  // Cross-Origin-Opener-Policy header blocking popup window detection.
-  // The browser now navigates away to Google entirely, so there's no
-  // further code to run here on success — only on failure to start it.
   const handleGoogle = async () => {
     setError('')
     setLoading(true)
@@ -163,6 +162,21 @@ export default function LoginPage() {
       else setError('Could not send reset email. Please try again.')
     }
     setResetLoading(false)
+  }
+
+  // FIX: while a redirect-based Google sign-in is still being processed
+  // (or being checked for), show a loading state instead of letting the
+  // normal sign-in/sign-up form render — previously this caused the page
+  // to look like it "bounced back" to the form while work was still
+  // happening silently in the background.
+  if (redirectLoading && !user) {
+    return (
+      <div style={{ minHeight: '100vh', background: '#060606', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '1rem', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif' }}>
+        <div style={{ width: '40px', height: '40px', border: `2px solid rgba(0,230,118,.2)`, borderTop: `2px solid ${GREEN}`, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+        <p style={{ color: 'rgba(255,255,255,.4)', fontSize: '.9rem' }}>Completing sign-in...</p>
+      </div>
+    )
   }
 
   // ── VERIFY SCREEN ──
