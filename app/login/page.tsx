@@ -37,7 +37,7 @@ function GoogleIcon() {
 }
 
 export default function LoginPage() {
-  const { user, redirectLoading, redirectError, loginWithGoogle, loginWithEmail, registerWithEmail, resendVerification, checkVerification, resetPassword } = useAuth()
+  const { user, loginWithGoogle, loginWithEmail, registerWithEmail, resendVerification, checkVerification, resetPassword } = useAuth()
   const router = useRouter()
 
   const [panel, setPanel] = useState<'signin' | 'register'>('signin')
@@ -61,16 +61,9 @@ export default function LoginPage() {
     setTimeout(() => setMounted(true), 60)
   }, [])
 
-  // Only auto-redirect once the user is both signed in AND verified.
   useEffect(() => {
     if (user && user.emailVerified) router.push('/dashboard')
   }, [user, router])
-
-  // FIX: surface any error from a failed/incomplete redirect sign-in
-  // (previously silently swallowed) into the normal error banner.
-  useEffect(() => {
-    if (redirectError) setError(redirectError)
-  }, [redirectError])
 
   const switchPanel = (to: 'signin' | 'register') => {
     setPanelAnim(true)
@@ -87,13 +80,16 @@ export default function LoginPage() {
     setLoading(true)
     try {
       await loginWithGoogle()
-      // No further code runs here — the browser is navigating to Google now.
+      router.push('/dashboard')
     } catch (e: any) {
       const code = e?.code || ''
-      if (code === 'auth/unauthorized-domain') setError('Add this domain in Firebase Console → Auth → Authorized Domains.')
-      else setError('Google sign-in failed. Please try again.')
-      setLoading(false)
+      if (code === 'auth/popup-closed-by-user') setError('Popup closed — try again.')
+      else if (code === 'auth/popup-blocked') setError('Your browser blocked the popup. Allow popups for this site and try again.')
+      else if (code === 'auth/cancelled-popup-request') setError('Please wait — sign-in already in progress.')
+      else if (code === 'auth/unauthorized-domain') setError('Add this domain in Firebase Console → Auth → Authorized Domains.')
+      else setError(`Google sign-in failed${code ? ` (${code})` : ''}. Please try again.`)
     }
+    setLoading(false)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -162,21 +158,6 @@ export default function LoginPage() {
       else setError('Could not send reset email. Please try again.')
     }
     setResetLoading(false)
-  }
-
-  // FIX: while a redirect-based Google sign-in is still being processed
-  // (or being checked for), show a loading state instead of letting the
-  // normal sign-in/sign-up form render — previously this caused the page
-  // to look like it "bounced back" to the form while work was still
-  // happening silently in the background.
-  if (redirectLoading && !user) {
-    return (
-      <div style={{ minHeight: '100vh', background: '#060606', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '1rem', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif' }}>
-        <div style={{ width: '40px', height: '40px', border: `2px solid rgba(0,230,118,.2)`, borderTop: `2px solid ${GREEN}`, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-        <p style={{ color: 'rgba(255,255,255,.4)', fontSize: '.9rem' }}>Completing sign-in...</p>
-      </div>
-    )
   }
 
   // ── VERIFY SCREEN ──
