@@ -13,6 +13,8 @@ import {
   signOut,
   User,
   GoogleAuthProvider,
+  browserLocalPersistence,
+  setPersistence,
 } from 'firebase/auth'
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore'
 import { auth, db } from '../lib/firebase'
@@ -20,6 +22,8 @@ import { auth, db } from '../lib/firebase'
 interface AuthContextType {
   user: User | null
   loading: boolean
+  redirectLoading: boolean
+  redirectError: string
   loginWithGoogle: () => Promise<void>
   loginWithEmail: (email: string, password: string) => Promise<{ needsVerification: boolean }>
   registerWithEmail: (email: string, password: string, name: string) => Promise<void>
@@ -31,8 +35,6 @@ interface AuthContextType {
 
 export const AuthContext = createContext<AuthContextType | null>(null)
 
-// Pulled out so both the redirect-result handler and the popup-era code
-// path (if ever needed again) create the user doc the same way.
 async function ensureUserDoc(u: User) {
   const ref = doc(db, 'users', u.uid)
   const snap = await getDoc(ref)
@@ -52,6 +54,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
+  // FIX: this is new. Previously there was no way to know whether a Google
+  // redirect sign-in was still being processed in the background, so the
+  // login page would flash back to the normal sign-up form while Firebase
+  // was still working. redirectLoading lets the UI show a proper
+  // "completing sign-in..." state instead of looking like nothing happened.
+  const [redirectLoading, setRedirectLoading] = useState(true)
+  const [redirectError, setRedirectError] = useState('')
+
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
       setUser(u)
@@ -60,33 +70,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => unsub()
   }, [])
 
-  // FIX: signInWithPopup relies on the main page reading window.closed on
-  // the popup, which Vercel/Next.js's Cross-Origin-Opener-Policy header
-  // blocks — causing sign-in to hang or report a generic failure.
-  // signInWithRedirect avoids this entirely: it navigates the whole page
-  // to Google and back, so there's no popup window to track.
-  //
-  // This handles the return trip from Google. It runs once on every page
-  // load; if the user just came back from a Google redirect, it resolves
-  // with their result and creates the Firestore doc if needed.
   useEffect(() => {
-    getRedirectResult(auth)
-      .then(async (result) => {
-        if (result?.user) {
-          await ensureUserDoc(result.user)
-        }
-      })
+    // FIX: explicit persistence helps signInWithRedirect survive the
+    // round-trip to Google and back on mobile browsers with stricter
+    // storage-partitioning behavior.
+    setPersistence(auth, browserLocalPersistence)
       .catch(() => {
-        // Errors here are surfaced to the user via the login page's own
-        // error state on next interaction; nothing to do silently here.
+        // If this fails, Firebase falls back to its default persistence.
+        // Not fatal — continue to redirect result handling regardless.
+      })
+      .finally(() => {
+        getRedirectResult(auth)
+          .then(async (result) => {
+            if (result?.user) {
+              await ensureUserDoc(result.user)
+            }
+            setRedirectLoading(false)
+          })
+          .catch((e: any) => {
+            // FIX: previously this error was silently discarded. Now it's
+            // stored so the login page can actually show the user what
+            // went wrong, instead of quietly looping back to the form.
+            const code = e?.code || ''
+            if (code === 'auth/unauthorized-domain') {
+              setRedirectError('This domain is not authorized for sign-in. Add it in Firebase Console → Authentication → Settings → Authorized domains.')
+            } else if (code) {
+              setRedirectError(`Sign-in could not complete (${code}). Please try again.`)
+            } else if (e?.message) {
+              setRedirectError('Sign-in could not complete. Please try again, or use a different browser.')
+            }
+            setRedirectLoading(false)
+          })
       })
   }, [])
 
   const loginWithGoogle = async () => {
     const provider = new GoogleAuthProvider()
     await signInWithRedirect(auth, provider)
-    // Execution pauses here — the browser navigates away to Google.
-    // When it comes back, the useEffect above (getRedirectResult) picks up.
   }
 
   const loginWithEmail = async (email: string, password: string) => {
@@ -127,7 +147,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => signOut(auth)
 
   return (
-    <AuthContext.Provider value={{ user, loading, loginWithGoogle, loginWithEmail, registerWithEmail, resendVerification, checkVerification, resetPassword, logout }}>
+    <AuthContext.Provider value={{ user, loading, redirectLoading, redirectError, loginWithGoogle, loginWithEmail, registerWithEmail, resendVerification, checkVerification, resetPassword, logout }}>
       {children}
     </AuthContext.Provider>
   )
