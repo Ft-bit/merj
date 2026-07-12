@@ -37,7 +37,7 @@ function GoogleIcon() {
 }
 
 export default function LoginPage() {
-  const { loginWithGoogle, loginWithEmail, registerWithEmail, resendVerification, checkVerification, resetPassword } = useAuth()
+  const { user, loginWithGoogle, loginWithEmail, registerWithEmail, resendVerification, checkVerification, resetPassword } = useAuth()
   const router = useRouter()
 
   const [panel, setPanel] = useState<'signin' | 'register'>('signin')
@@ -52,7 +52,6 @@ export default function LoginPage() {
   const [resent, setResent] = useState(false)
   const [panelAnim, setPanelAnim] = useState(false)
 
-  // NEW: forgot password state
   const [resetSent, setResetSent] = useState(false)
   const [resetLoading, setResetLoading] = useState(false)
 
@@ -61,6 +60,13 @@ export default function LoginPage() {
   useEffect(() => {
     setTimeout(() => setMounted(true), 60)
   }, [])
+
+  // FIX: after a redirect-based Google sign-in completes, AuthContext's
+  // getRedirectResult resolves and onAuthStateChanged fires, populating
+  // `user`. This effect catches that and navigates to the dashboard.
+  useEffect(() => {
+    if (user) router.push('/dashboard')
+  }, [user, router])
 
   const switchPanel = (to: 'signin' | 'register') => {
     setPanelAnim(true)
@@ -72,19 +78,23 @@ export default function LoginPage() {
     }, 300)
   }
 
+  // FIX: switched from signInWithPopup to signInWithRedirect (handled inside
+  // loginWithGoogle in AuthContext) to avoid Vercel/Next.js's default
+  // Cross-Origin-Opener-Policy header blocking popup window detection.
+  // The browser now navigates away to Google entirely, so there's no
+  // further code to run here on success — only on failure to start it.
   const handleGoogle = async () => {
     setError('')
     setLoading(true)
     try {
       await loginWithGoogle()
-      router.push('/dashboard')
+      // No further code runs here — the browser is navigating to Google now.
     } catch (e: any) {
       const code = e?.code || ''
-      if (code === 'auth/popup-closed-by-user') setError('Popup closed — try again.')
-      else if (code === 'auth/unauthorized-domain') setError('Add this domain in Firebase Console → Auth → Authorized Domains.')
+      if (code === 'auth/unauthorized-domain') setError('Add this domain in Firebase Console → Auth → Authorized Domains.')
       else setError('Google sign-in failed. Please try again.')
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -135,8 +145,6 @@ export default function LoginPage() {
     setLoading(false)
   }
 
-  // NEW: forgot password handler. Uses whatever is currently typed in the
-  // email field — if it's empty, asks the user to type it first.
   const handleForgotPassword = async () => {
     setError('')
     setResetSent(false)
@@ -367,7 +375,6 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              {/* NEW: password reset confirmation */}
               {resetSent && !isRegister && (
                 <div style={{ padding: '.75rem 1rem', background: 'rgba(0,230,118,.07)', border: '1px solid rgba(0,230,118,.18)', borderRadius: '8px', color: GREEN, fontSize: '.83rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ fontSize: '1rem' }}>✓</span>
