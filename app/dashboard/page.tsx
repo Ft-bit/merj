@@ -64,8 +64,12 @@ export default function DashboardPage() {
           </h1>
         </div>
 
-        {/* User card */}
-        <div className="card" style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+      {/* User card — click through to profile */}
+<div
+  className="card"
+  onClick={() => router.push('/profile')}
+  style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', cursor: 'pointer' }}
+>
           {user.photoURL ? (
             <img src={user.photoURL} alt="avatar" width={48} height={48} style={{ borderRadius: '50%', objectFit: 'cover' }} />
           ) : (
