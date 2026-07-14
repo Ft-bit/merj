@@ -58,10 +58,6 @@ export default function ProfilePage() {
         setBio(data.bio || '')
       }
     } catch (e: any) {
-      // FIX: previously this had no catch at all — a permission-denied
-      // error (e.g. from Firestore security rules) silently killed the
-      // function before it reached setFetching(false), leaving the page
-      // stuck on the loading spinner forever with no feedback.
       if (e?.code === 'permission-denied') {
         setFetchError('Could not load your profile — permission denied. Check Firestore security rules.')
       } else {
@@ -306,7 +302,13 @@ export default function ProfilePage() {
             <div>
               {!editing ? (
                 <>
-                  <h1 style={{ fontSize: '1.65rem', fontWeight: '800', letterSpacing: '-.025em' }}>{profile?.name || 'User'}</h1>
+                  <h1 style={{ fontSize: '1.65rem', fontWeight: '800', letterSpacing: '-.025em', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {profile?.name || 'User'}
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill={GREEN} aria-label="Verified">
+                      <path d="M12 1l2.4 2.4L18 2.6l.8 3.6 3.6.8-.8 3.6L24 12l-2.4 2.4.8 3.6-3.6.8-.8 3.6-3.6-.8L12 24l-2.4-2.4L6 22.4l-.8-3.6-3.6-.8.8-3.6L0 12l2.4-2.4L1.6 6l3.6-.8L6 1.6l3.6.8z"/>
+                      <path d="M9 12l2 2 4-4" stroke="#000" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </h1>
                   <p style={{ color: 'rgba(255,255,255,.4)', fontSize: '.88rem', marginTop: '.25rem' }}>{user.email}</p>
                   {memberSince && (
                     <p style={{ color: 'rgba(255,255,255,.28)', fontSize: '.8rem', marginTop: '.4rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
