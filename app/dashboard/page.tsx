@@ -3,23 +3,21 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../context/AuthContext'
+import Sidebar from '../../components/Sidebar'
 
 const GREEN = '#00e676'
 
 export default function DashboardPage() {
-  const { user, loading, logout } = useAuth()
+  const { user, loading } = useAuth()
   const router = useRouter()
 
-  // FIX: previously only checked `!user`, which let an unverified email/password
-  // user reach the dashboard directly by typing the URL, even though the login
-  // page itself blocked them with the "check your email" screen.
   useEffect(() => {
     if (!loading && (!user || !user.emailVerified)) router.push('/login')
   }, [user, loading, router])
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000', color: '#fff', fontFamily: 'sans-serif', flexDirection: 'column', gap: '1rem' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000' }}>
         <div style={{ width: '40px', height: '40px', border: `2px solid rgba(0,230,118,.2)`, borderTop: `2px solid ${GREEN}`, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
         <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       </div>
@@ -29,100 +27,99 @@ export default function DashboardPage() {
   if (!user || !user.emailVerified) return null
 
   return (
-    <div style={{ minHeight: '100vh', background: '#000', padding: '2rem', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', color: '#fff' }}>
+    <div style={{ minHeight: '100vh', background: '#000', color: '#fff', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', display: 'flex' }}>
       <style>{`
+        *{box-sizing:border-box}
         @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
-        .card{background:#0d0d0d;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:1.5rem;transition:border-color .2s}
-        .card:hover{border-color:rgba(0,230,118,.15)}
-        .action-card{background:#0d0d0d;border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:1.5rem;cursor:pointer;transition:all .2s;text-align:left}
-        .action-card:hover{border-color:rgba(0,230,118,.25);transform:translateY(-2px);background:#111}
+        .feed-card{
+          background:#0a0a0a;border:1px solid rgba(255,255,255,.07);border-radius:16px;
+          padding:1.5rem;transition:border-color .2s;
+        }
+        .feed-card:hover{border-color:rgba(0,230,118,.15)}
+        .action-tile{
+          background:#0a0a0a;border:1px solid rgba(255,255,255,.07);border-radius:14px;
+          padding:1.25rem;cursor:pointer;transition:all .2s;text-align:left;
+        }
+        .action-tile:hover{border-color:rgba(0,230,118,.25);transform:translateY(-2px);background:#0e0e0e}
+        .rail-card{
+          background:#0a0a0a;border:1px solid rgba(255,255,255,.07);border-radius:14px;
+          padding:1.25rem;
+        }
+        @media(max-width:900px){ .right-rail{display:none!important} }
+        @media(max-width:600px){ .feed-main{padding:1rem!important} }
       `}</style>
 
-      <div style={{ maxWidth: '860px', margin: '0 auto', animation: 'fadeUp .5s ease' }}>
+      <Sidebar />
 
-        {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <div style={{ width: '28px', height: '28px', background: GREEN, borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900', fontSize: '13px', color: '#000' }}>M</div>
-            <span style={{ fontWeight: '800', fontSize: '1.05rem', letterSpacing: '-.02em' }}>Merj</span>
-          </div>
-          <button
-            onClick={async () => { await logout(); router.push('/login') }}
-            style={{ padding: '.5rem 1.25rem', background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.08)', borderRadius: '8px', color: 'rgba(255,255,255,.5)', cursor: 'pointer', fontSize: '.85rem', fontFamily: 'inherit', transition: 'all .2s' }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#fff'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,.2)' }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,.5)'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,.08)' }}
-          >
-            Sign out
-          </button>
-        </div>
-
-        {/* Welcome */}
+      <main className="feed-main" style={{ flex: 1, padding: '2rem', maxWidth: '640px', margin: '0 auto', animation: 'fadeUp .4s ease' }}>
         <div style={{ marginBottom: '2rem' }}>
           <p style={{ color: 'rgba(255,255,255,.3)', fontSize: '.85rem', marginBottom: '.25rem' }}>Welcome back</p>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: '800', letterSpacing: '-.03em' }}>
+          <h1 style={{ fontSize: '1.6rem', fontWeight: '800', letterSpacing: '-.03em' }}>
             {user.displayName || user.email?.split('@')[0] || 'User'}
           </h1>
         </div>
 
-      {/* User card — click through to profile */}
-<div
-  className="card"
-  onClick={() => router.push('/profile')}
-  style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', cursor: 'pointer' }}
->
-          {user.photoURL ? (
-            <img src={user.photoURL} alt="avatar" width={48} height={48} style={{ borderRadius: '50%', objectFit: 'cover' }} />
-          ) : (
-            <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: `rgba(0,230,118,.15)`, border: `1px solid rgba(0,230,118,.25)`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: '700', color: GREEN }}>
-              {(user.displayName || user.email || 'U')[0].toUpperCase()}
+        <div className="feed-card" style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <span style={{ fontSize: '1.5rem' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={GREEN} strokeWidth="2"><path d="M20 6L9 17l-5-5"/></svg>
+          </span>
+          <div>
+            <p style={{ fontWeight: '700', color: GREEN, fontSize: '.95rem', marginBottom: '.2rem' }}>Your account is live</p>
+            <p style={{ color: 'rgba(255,255,255,.4)', fontSize: '.85rem' }}>Start buying or selling digital assets on Merj.</p>
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '.85rem', marginBottom: '2rem' }}>
+          <div className="action-tile" onClick={() => router.push('/listings')}>
+            <div style={{ fontSize: '1.5rem', marginBottom: '.6rem' }}>🛒</div>
+            <p style={{ fontWeight: '700', fontSize: '.9rem', marginBottom: '.2rem' }}>Browse marketplace</p>
+            <p style={{ color: 'rgba(255,255,255,.35)', fontSize: '.8rem', lineHeight: 1.4 }}>Websites, accounts, stores</p>
+          </div>
+          <div className="action-tile" onClick={() => router.push('/sell')}>
+            <div style={{ fontSize: '1.5rem', marginBottom: '.6rem' }}>💰</div>
+            <p style={{ fontWeight: '700', fontSize: '.9rem', marginBottom: '.2rem' }}>List an asset</p>
+            <p style={{ color: 'rgba(255,255,255,.35)', fontSize: '.8rem', lineHeight: 1.4 }}>Free to list, pay on sale</p>
+          </div>
+        </div>
+
+        <div style={{ borderTop: '1px solid rgba(255,255,255,.06)', paddingTop: '1.5rem' }}>
+          <p style={{ fontSize: '.78rem', fontWeight: '700', letterSpacing: '.05em', textTransform: 'uppercase', color: 'rgba(255,255,255,.25)', marginBottom: '1rem' }}>
+            Recent activity
+          </p>
+          <div className="feed-card" style={{ textAlign: 'center', padding: '2.5rem 1.5rem' }}>
+            <p style={{ color: 'rgba(255,255,255,.35)', fontSize: '.9rem', marginBottom: '.4rem' }}>No activity yet</p>
+            <p style={{ color: 'rgba(255,255,255,.2)', fontSize: '.8rem' }}>Listings and offers will show up here once the marketplace launches.</p>
+          </div>
+        </div>
+      </main>
+
+      <aside className="right-rail" style={{ width: '300px', flexShrink: 0, padding: '2rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div className="rail-card">
+          <p style={{ fontSize: '.78rem', fontWeight: '700', letterSpacing: '.05em', textTransform: 'uppercase', color: 'rgba(255,255,255,.3)', marginBottom: '1rem' }}>
+            Account
+          </p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '.85rem', marginBottom: '.6rem' }}>
+            <span style={{ color: 'rgba(255,255,255,.5)' }}>Status</span>
+            <span style={{ color: GREEN, fontWeight: '600' }}>Verified</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '.85rem' }}>
+            <span style={{ color: 'rgba(255,255,255,.5)' }}>Active listings</span>
+            <span style={{ fontWeight: '600' }}>0</span>
+          </div>
+        </div>
+
+        <div className="rail-card">
+          <p style={{ fontSize: '.78rem', fontWeight: '700', letterSpacing: '.05em', textTransform: 'uppercase', color: 'rgba(255,255,255,.3)', marginBottom: '1rem' }}>
+            Coming soon
+          </p>
+          {['Marketplace listings', 'Direct messaging', 'Notifications'].map(item => (
+            <div key={item} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '.4rem 0', fontSize: '.85rem', color: 'rgba(255,255,255,.5)' }}>
+              <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'rgba(0,230,118,.5)' }} />
+              {item}
             </div>
-          )}
-          <div>
-            <p style={{ fontWeight: '600', fontSize: '1rem', color: '#fff', marginBottom: '.15rem' }}>{user.displayName || 'User'}</p>
-            <p style={{ color: 'rgba(255,255,255,.4)', fontSize: '.85rem' }}>{user.email}</p>
-          </div>
-          <div style={{ marginLeft: 'auto', padding: '.3rem .85rem', background: 'rgba(0,230,118,.1)', border: '1px solid rgba(0,230,118,.2)', borderRadius: '100px', fontSize: '.75rem', fontWeight: '600', color: GREEN }}>
-            Active
-          </div>
+          ))}
         </div>
-
-        {/* Success banner */}
-        <div style={{ background: 'rgba(0,230,118,.05)', border: '1px solid rgba(0,230,118,.15)', borderRadius: '16px', padding: '1.25rem 1.5rem', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <span style={{ fontSize: '1.5rem' }}>🎉</span>
-          <div>
-            <p style={{ fontWeight: '600', color: GREEN, fontSize: '.95rem', marginBottom: '.2rem' }}>You are in!</p>
-            <p style={{ color: 'rgba(255,255,255,.4)', fontSize: '.85rem' }}>Your Merj account is live. Start buying or selling digital assets.</p>
-          </div>
-        </div>
-
-        {/* Action cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-          <div className="action-card" onClick={() => router.push('/listings')}>
-            <div style={{ fontSize: '1.75rem', marginBottom: '.75rem' }}>🛒</div>
-            <p style={{ fontWeight: '700', marginBottom: '.3rem', fontSize: '.95rem' }}>Browse marketplace</p>
-            <p style={{ color: 'rgba(255,255,255,.35)', fontSize: '.83rem', lineHeight: 1.5 }}>Websites, accounts, stores and more</p>
-          </div>
-
-          <div className="action-card" onClick={() => router.push('/sell')}>
-            <div style={{ fontSize: '1.75rem', marginBottom: '.75rem' }}>💰</div>
-            <p style={{ fontWeight: '700', marginBottom: '.3rem', fontSize: '.95rem' }}>List an asset</p>
-            <p style={{ color: 'rgba(255,255,255,.35)', fontSize: '.83rem', lineHeight: 1.5 }}>Free to list, pay only when you sell</p>
-          </div>
-
-          <div className="action-card">
-            <div style={{ fontSize: '1.75rem', marginBottom: '.75rem' }}>📊</div>
-            <p style={{ fontWeight: '700', marginBottom: '.3rem', fontSize: '.95rem' }}>My listings</p>
-            <p style={{ color: 'rgba(255,255,255,.35)', fontSize: '.83rem', lineHeight: 1.5 }}>Manage your active listings</p>
-          </div>
-
-          <div className="action-card">
-            <div style={{ fontSize: '1.75rem', marginBottom: '.75rem' }}>💳</div>
-            <p style={{ fontWeight: '700', marginBottom: '.3rem', fontSize: '.95rem' }}>Purchases</p>
-            <p style={{ color: 'rgba(255,255,255,.35)', fontSize: '.83rem', lineHeight: 1.5 }}>View your transaction history</p>
-          </div>
-        </div>
-
-      </div>
+      </aside>
     </div>
   )
 }
