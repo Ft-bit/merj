@@ -62,9 +62,8 @@ export default function LoginPage() {
   }, [])
 
   useEffect(() => {
-    if (user && user.emailVerified) router.push('/dashboard')
-  }, [user, router])
-
+  if (user && user.emailVerified) router.push('/dashboard')
+}, [user, router])
   const switchPanel = (to: 'signin' | 'register') => {
     setPanelAnim(true)
     setTimeout(() => {
@@ -159,6 +158,14 @@ export default function LoginPage() {
     }
     setResetLoading(false)
   }
+  if (authLoading || (user && user.emailVerified)) {
+  return (
+    <div style={{ minHeight: '100vh', background: '#060606', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ width: '40px', height: '40px', border: `2px solid rgba(0,230,118,.2)`, borderTop: `2px solid ${GREEN}`, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    </div>
+  )
+}
 
   // ── VERIFY SCREEN ──
   if (showVerify) {
