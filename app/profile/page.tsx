@@ -8,6 +8,7 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { updateProfile as updateFirebaseProfile } from 'firebase/auth'
 import { db, storage, auth } from '../../lib/firebase'
 import Sidebar from '../../components/Sidebar'
+import { linkifyText } from '../../lib/linkify'
 
 const GREEN = '#00e676'
 
@@ -227,7 +228,6 @@ export default function ProfilePage() {
 
       <main style={{ flex: 1, maxWidth: '760px', margin: '0 auto', paddingBottom: '4rem' }}>
 
-        {/* Cover photo */}
         <div style={{
           marginTop: '1.5rem', marginLeft: '1.5rem', marginRight: '1.5rem',
           height: '220px', position: 'relative',
@@ -259,7 +259,6 @@ export default function ProfilePage() {
           </button>
         </div>
 
-        {/* Avatar + identity */}
         <div style={{ padding: '0 1.5rem', marginTop: '-52px', position: 'relative', animation: 'fadeUp .6s ease' }}>
           <div style={{ position: 'relative', width: '104px' }}>
             <div style={{
@@ -341,7 +340,9 @@ export default function ProfilePage() {
           {!editing ? (
             <>
               {profile?.bio && (
-                <p style={{ color: 'rgba(255,255,255,.62)', fontSize: '.94rem', lineHeight: 1.75, marginTop: '1.25rem', maxWidth: '520px' }}>{profile.bio}</p>
+                <p style={{ color: 'rgba(255,255,255,.62)', fontSize: '.94rem', lineHeight: 1.75, marginTop: '1.25rem', maxWidth: '520px' }}>
+                  {linkifyText(profile.bio, GREEN)}
+                </p>
               )}
               <button className="btn-ghost" style={{ marginTop: '1.5rem' }} onClick={() => setEditing(true)}>
                 Edit profile
