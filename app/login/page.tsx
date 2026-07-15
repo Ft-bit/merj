@@ -37,7 +37,7 @@ function GoogleIcon() {
 }
 
 export default function LoginPage() {
-  const { user, loginWithGoogle, loginWithEmail, registerWithEmail, resendVerification, checkVerification, resetPassword } = useAuth()
+  const { user, loading: authLoading, loginWithGoogle, loginWithEmail, registerWithEmail, resendVerification, checkVerification } = useAuth()
   const router = useRouter()
 
   const [panel, setPanel] = useState<'signin' | 'register'>('signin')
