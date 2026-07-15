@@ -1,7 +1,9 @@
-
+/* eslint-disable @next/next/no-img-element */
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '../context/AuthContext'
 
 const VIDEO =
   'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260322_013248_a74099a8-be2b-4164-a823-eddd5e149fa1.mp4'
@@ -10,11 +12,17 @@ const GREEN = '#00e676'
 const GREEN2 = '#00c853'
 
 export default function Home() {
+  const router = useRouter()
+  const { user, loading } = useAuth()
   const [mode, setMode] = useState('buy')
   const [scrolled, setScrolled] = useState(false)
   const [ready, setReady] = useState(false)
   const [videoErr, setVideoErr] = useState(false)
   const buy = mode === 'buy'
+
+  useEffect(() => {
+    if (user && user.emailVerified) router.push('/dashboard')
+  }, [user, router])
 
   useEffect(() => {
     setTimeout(() => setReady(true), 100)
@@ -23,18 +31,25 @@ export default function Home() {
     return () => window.removeEventListener('scroll', fn)
   }, [])
 
+  if (loading || (user && user.emailVerified)) {
+    return (
+      <div style={{ minHeight: '100vh', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: '40px', height: '40px', border: '2px solid rgba(0,230,118,.2)', borderTop: '2px solid #00e676', borderRadius: '50%', animation: 'homeSpin 1s linear infinite' }} />
+        <style>{`@keyframes homeSpin{to{transform:rotate(360deg)}}`}</style>
+      </div>
+    )
+  }
+
   return (
     <div style={{ background: '#000', color: '#fff', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', overflowX: 'hidden' }}>
       <style>{`
         *{box-sizing:border-box;margin:0;padding:0}
-
         @keyframes float0{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-14px) rotate(-4deg)}}
         @keyframes float1{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-18px) rotate(-1deg)}}
         @keyframes float2{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-16px) rotate(0deg)}}
         @keyframes float3{0%,100%{transform:translateY(0) rotate(2deg)}50%{transform:translateY(-12px) rotate(2deg)}}
         @keyframes float4{0%,100%{transform:translateY(0) rotate(5deg)}50%{transform:translateY(-15px) rotate(5deg)}}
         @keyframes float5{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-10px) rotate(-2deg)}}
-
         @keyframes dot{0%{left:0%;opacity:0}10%{opacity:1}90%{opacity:1}100%{left:100%;opacity:0}}
         @keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:none}}
         @keyframes glow{0%,100%{opacity:.35}50%{opacity:.8}}
@@ -106,7 +121,6 @@ export default function Home() {
 
       <div className="grain" />
 
-      {/* ── NAV ── */}
       <nav style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -133,14 +147,12 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* ── HERO ── */}
       <section style={{
         minHeight: '100vh', display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
         padding: '7rem 2rem 4rem', position: 'relative',
         textAlign: 'center', overflow: 'hidden',
       }}>
-        {/* Video BG */}
         {!videoErr && (
           <video autoPlay muted loop playsInline onError={() => setVideoErr(true)}
             style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: .3, zIndex: 0, pointerEvents: 'none' }}>
@@ -149,10 +161,8 @@ export default function Home() {
         )}
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg,rgba(0,0,0,.5) 0%,rgba(0,0,0,.05) 40%,rgba(0,0,0,.65) 80%,#000 100%)', zIndex: 1 }} />
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at center, transparent 20%, rgba(0,0,0,.75) 100%)', zIndex: 1 }} />
-        {/* Green glow from video */}
         <div style={{ position: 'absolute', bottom: '10%', left: '50%', transform: 'translateX(-50%)', width: '600px', height: '200px', background: 'radial-gradient(ellipse, rgba(0,230,118,.12) 0%, transparent 70%)', zIndex: 1, pointerEvents: 'none' }} />
 
-        {/* PLATFORM ICONS */}
         <div style={{
           position: 'relative', zIndex: 3,
           display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
@@ -160,8 +170,6 @@ export default function Home() {
           opacity: ready ? 1 : 0, transform: ready ? 'none' : 'translateY(20px)',
           transition: 'opacity .9s ease, transform .9s ease',
         }}>
-
-          {/* WordPress */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
             <div className="ic" style={{ width: '80px', height: '80px', background: 'linear-gradient(145deg,#1e8ec4,#0073aa,#004d73)', boxShadow: '0 18px 45px rgba(0,115,170,.55), inset 0 1px 0 rgba(255,255,255,.2)', animation: 'float0 3.5s ease-in-out 0s infinite' }}>
               <img src="/images/wp.png" alt="WordPress" width={48} height={48} style={{ objectFit: 'contain', position: 'relative', zIndex: 4, filter: 'drop-shadow(0 2px 8px rgba(0,0,0,.5))' }} />
@@ -171,7 +179,6 @@ export default function Home() {
 
           <div className="cxg" style={{ width: '18px', marginBottom: '34px' }}><div className="cx"><div className="cd" style={{ animationDelay: '.4s' }} /></div></div>
 
-          {/* Blogger */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
             <div className="ic" style={{ width: '80px', height: '80px', background: 'linear-gradient(145deg,#ff9534,#f57d00,#c45e00)', boxShadow: '0 18px 45px rgba(245,125,0,.55), inset 0 1px 0 rgba(255,255,255,.2)', animation: 'float1 3.8s ease-in-out .15s infinite' }}>
               <img src="/images/blogger.png" alt="Blogger" width={48} height={48} style={{ objectFit: 'contain', position: 'relative', zIndex: 4, filter: 'drop-shadow(0 2px 8px rgba(0,0,0,.5))' }} />
@@ -181,7 +188,6 @@ export default function Home() {
 
           <div className="cxg" style={{ width: '18px', marginBottom: '34px' }}><div className="cx"><div className="cd" style={{ animationDelay: '.8s' }} /></div></div>
 
-          {/* Vercel */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
             <div className="ic" style={{ width: '80px', height: '80px', background: 'linear-gradient(145deg,#1a1a1a,#0a0a0a,#000)', boxShadow: '0 18px 45px rgba(150,150,150,.3), inset 0 1px 0 rgba(255,255,255,.22)', animation: 'float2 4.1s ease-in-out .3s infinite' }}>
               <img src="/images/vc.png" alt="Vercel" width={48} height={48} style={{ objectFit: 'contain', position: 'relative', zIndex: 4, filter: 'drop-shadow(0 2px 8px rgba(0,0,0,.5))' }} />
@@ -191,7 +197,6 @@ export default function Home() {
 
           <div className="cxg" style={{ width: '18px', marginBottom: '34px' }}><div className="cx"><div className="cd" style={{ animationDelay: '1.2s' }} /></div></div>
 
-          {/* X (Twitter) */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
             <div className="ic" style={{ width: '80px', height: '80px', background: 'linear-gradient(145deg,#1a1a1a,#0d0d0d,#000)', boxShadow: '0 18px 45px rgba(255,255,255,.15), inset 0 1px 0 rgba(255,255,255,.2)', animation: 'float3 3.6s ease-in-out .45s infinite' }}>
               <svg width="36" height="36" viewBox="0 0 24 24" fill="white" style={{ position: 'relative', zIndex: 4, filter: 'drop-shadow(0 2px 8px rgba(0,0,0,.5))' }}>
@@ -203,7 +208,6 @@ export default function Home() {
 
           <div className="cxg" style={{ width: '18px', marginBottom: '34px' }}><div className="cx"><div className="cd" style={{ animationDelay: '1.6s' }} /></div></div>
 
-          {/* Instagram */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
             <div className="ic" style={{ width: '80px', height: '80px', background: 'linear-gradient(145deg,#833ab4,#fd1d1d,#fcb045)', boxShadow: '0 18px 45px rgba(253,29,29,.4), inset 0 1px 0 rgba(255,255,255,.2)', animation: 'float4 4.3s ease-in-out .6s infinite' }}>
               <svg width="38" height="38" viewBox="0 0 24 24" fill="white" style={{ position: 'relative', zIndex: 4, filter: 'drop-shadow(0 2px 8px rgba(0,0,0,.5))' }}>
@@ -215,7 +219,6 @@ export default function Home() {
 
           <div className="cxg" style={{ width: '18px', marginBottom: '34px' }}><div className="cx"><div className="cd" style={{ animationDelay: '2s' }} /></div></div>
 
-          {/* More */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
             <div className="ic" style={{ width: '80px', height: '80px', background: 'linear-gradient(145deg,#111,#1a1a1a)', boxShadow: '0 18px 45px rgba(0,230,118,.2), inset 0 1px 0 rgba(255,255,255,.1)', animation: 'float5 3.9s ease-in-out .75s infinite', border: `1px dashed rgba(0,230,118,.3)` }}>
               <div style={{ position: 'relative', zIndex: 4, textAlign: 'center' }}>
@@ -227,7 +230,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* TOGGLE */}
         <div style={{ position: 'relative', zIndex: 3, marginBottom: '2rem', opacity: ready ? 1 : 0, transition: 'opacity .9s ease .25s' }}>
           <div className="tog">
             <button className={buy ? 'ton' : 'toff'} onClick={() => setMode('buy')}>🛒 I want to buy</button>
@@ -235,7 +237,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* HEADLINE */}
         <div style={{ position: 'relative', zIndex: 3, maxWidth: '860px', opacity: ready ? 1 : 0, transition: 'opacity 1s ease .35s' }}>
           <h1 className="hh" style={{ fontSize: 'clamp(2.8rem,7.5vw,6rem)', fontWeight: '900', letterSpacing: '-.04em', lineHeight: .95, marginBottom: '1.5rem', transition: 'all .4s ease' }}>
             {buy ? (
@@ -258,7 +259,6 @@ export default function Home() {
             }
           </p>
 
-          {/* Coming soon tags */}
           <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '.5rem', marginBottom: '2.25rem' }}>
             {['WordPress', 'Blogger', 'Vercel', 'X Accounts', 'Instagram', 'Facebook Pages', 'Shopify', 'More coming soon'].map((tag, i) => (
               <span key={tag} style={{
@@ -296,7 +296,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── TICKER ── */}
       <div style={{ borderTop: '1px solid rgba(255,255,255,.05)', borderBottom: '1px solid rgba(255,255,255,.05)', padding: '.9rem 0', background: 'rgba(255,255,255,.01)', overflow: 'hidden' }}>
         <div className="ticker-track">
           {[...Array(2)].map((_, rep) => (
@@ -310,7 +309,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── HOW IT WORKS ── */}
       <section style={{ padding: '7rem 2rem', maxWidth: '1080px', margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
           <div style={{ fontSize: '.68rem', fontWeight: '700', letterSpacing: '.22em', color: 'rgba(255,255,255,.25)', textTransform: 'uppercase', marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
@@ -340,7 +338,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── TRUST STRIP ── */}
       <section style={{ background: 'rgba(0,230,118,.02)', borderTop: '1px solid rgba(0,230,118,.07)', borderBottom: '1px solid rgba(0,230,118,.07)', padding: '4rem 2rem' }}>
         <div style={{ maxWidth: '1080px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: '3rem' }}>
           {[
@@ -358,7 +355,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── CTA ── */}
       <section style={{ padding: '9rem 2rem', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at center, rgba(0,230,118,.06) 0%, transparent 60%)' }} />
         <div style={{ position: 'relative', zIndex: 1 }}>
@@ -380,7 +376,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── FOOTER ── */}
       <footer style={{ borderTop: '1px solid rgba(255,255,255,.05)', padding: '2.5rem' }}>
         <div style={{ maxWidth: '1080px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1.5rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
