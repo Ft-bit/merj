@@ -41,7 +41,7 @@ export default function Sidebar() {
   const navItems: NavItem[] = [
     { label: 'Home', path: '/dashboard', icon: <IconHome />, enabled: true },
     { label: 'Marketplace', path: '/listings', icon: <IconMarketplace />, enabled: false },
-    { label: 'Messages', path: '/messages', icon: <IconMessages />, enabled: false },
+    { label: 'Messages', path: '/messages', icon: <IconMessages />, enabled: true },
     { label: 'Notifications', path: '/notifications', icon: <IconBell />, enabled: false },
     { label: 'Profile', path: '/profile', icon: <IconUser />, enabled: true },
   ]
