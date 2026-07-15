@@ -54,6 +54,7 @@ function MessagesInner() {
   const [directoryLoading, setDirectoryLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [starting, setStarting] = useState(false)
+  const [directoryError, setDirectoryError] = useState('')
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -100,6 +101,7 @@ function MessagesInner() {
 
   const openDirectory = async () => {
     setShowNew(true)
+    setDirectoryError('')
     if (directory.length > 0) return
     setDirectoryLoading(true)
     try {
@@ -145,8 +147,12 @@ function MessagesInner() {
       setActiveId(convId)
       setShowNew(false)
       setSearchTerm('')
-    } catch {
-      // If this fails, the directory stays open so the user can retry.
+    } catch (e: any) {
+      if (e?.code === 'permission-denied') {
+        setDirectoryError('Could not start conversation — permission denied. Check Firestore rules.')
+      } else {
+        setDirectoryError('Could not start conversation. Please try again.')
+      }
     }
     setStarting(false)
   }
@@ -260,6 +266,9 @@ function MessagesInner() {
                   onChange={e => setSearchTerm(e.target.value)}
                   autoFocus
                 />
+                {directoryError && (
+                  <p style={{ color: '#fca5a5', fontSize: '.78rem', marginTop: '.5rem' }}>{directoryError}</p>
+                )}
               </div>
               <div style={{ flex: 1, overflowY: 'auto', padding: '0 .5rem' }}>
                 {directoryLoading && (
