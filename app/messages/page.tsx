@@ -38,6 +38,10 @@ interface DirectoryUser {
   photo: string
 }
 
+function conversationId(a: string, b: string) {
+  return [a, b].sort().join('_')
+}
+
 function MessagesInner() {
   const { user, loading } = useAuth()
   const router = useRouter()
@@ -53,8 +57,12 @@ function MessagesInner() {
   const [uploadingMedia, setUploadingMedia] = useState(false)
   const [error, setError] = useState('')
 
+  const [composeOpen, setComposeOpen] = useState(false)
   const [directory, setDirectory] = useState<DirectoryUser[]>([])
+  const [directoryLoaded, setDirectoryLoaded] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
+  const [starting, setStarting] = useState(false)
+  const [composeError, setComposeError] = useState('')
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -104,23 +112,63 @@ function MessagesInner() {
     })()
   }, [conversations, user])
 
-  useEffect(() => {
+  const openCompose = async () => {
+    setComposeOpen(true)
+    setComposeError('')
+    setSearchTerm('')
+    if (directoryLoaded) return
+    try {
+      const snap = await getDocs(query(collection(db, 'users'), limit(200)))
+      setDirectory(
+        snap.docs
+          .filter(d => d.id !== user?.uid)
+          .map(d => ({
+            uid: d.id,
+            name: d.data().name || 'User',
+            email: d.data().email || '',
+            photo: d.data().photo || '',
+          }))
+      )
+      setDirectoryLoaded(true)
+    } catch {
+      setComposeError('Could not load people. Please try again.')
+    }
+  }
+
+  const startConversationWith = async (otherUid: string, otherName: string, otherPhoto: string) => {
     if (!user) return
-    getDocs(query(collection(db, 'users'), limit(200)))
-      .then(snap => {
-        setDirectory(
-          snap.docs
-            .filter(d => d.id !== user.uid)
-            .map(d => ({
-              uid: d.id,
-              name: d.data().name || 'User',
-              email: d.data().email || '',
-              photo: d.data().photo || '',
-            }))
-        )
-      })
-      .catch(() => {})
-  }, [user])
+    setStarting(true)
+    setComposeError('')
+    try {
+      const convId = conversationId(user.uid, otherUid)
+      const convRef = doc(db, 'conversations', convId)
+      const convSnap = await getDoc(convRef)
+
+      if (!convSnap.exists()) {
+        const meSnap = await getDoc(doc(db, 'users', user.uid))
+        const meData = meSnap.exists() ? meSnap.data() : {}
+        await setDoc(convRef, {
+          participants: [user.uid, otherUid],
+          participantInfo: {
+            [user.uid]: { name: meData?.name || user.displayName || 'User', photo: meData?.photo || user.photoURL || '' },
+            [otherUid]: { name: otherName, photo: otherPhoto },
+          },
+          lastMessage: '',
+          lastMessageAt: serverTimestamp(),
+        })
+      }
+
+      setActiveId(convId)
+      setComposeOpen(false)
+    } catch (e: any) {
+      if (e?.code === 'permission-denied') {
+        setComposeError('Could not start conversation — permission denied. Check Firestore rules.')
+      } else {
+        setComposeError('Could not start conversation. Please try again.')
+      }
+    }
+    setStarting(false)
+  }
 
   useEffect(() => {
     if (!activeId) {
@@ -214,20 +262,11 @@ function MessagesInner() {
   const otherUid = activeConv?.participants.find(p => p !== user.uid)
   const otherInfo = otherUid ? (liveInfo[otherUid] || activeConv?.participantInfo?.[otherUid]) : null
 
-  const term = searchTerm.trim().toLowerCase()
-
-  const conversationRows = conversations
-    .map(c => {
-      const oUid = c.participants.find(p => p !== user.uid) || ''
-      const info = liveInfo[oUid] || c.participantInfo?.[oUid]
-      return { conv: c, otherUid: oUid, info }
-    })
-    .filter(row => !term || (row.info?.name || '').toLowerCase().includes(term))
-
-  const existingUids = new Set(conversations.map(c => c.participants.find(p => p !== user.uid)))
-  const newPeopleMatches = term
-    ? directory.filter(u => !existingUids.has(u.uid) && (u.name.toLowerCase().includes(term) || u.email.toLowerCase().includes(term)))
-    : []
+  const filteredDirectory = directory.filter(u => {
+    const term = searchTerm.trim().toLowerCase()
+    if (!term) return true
+    return u.name.toLowerCase().includes(term) || u.email.toLowerCase().includes(term)
+  })
 
   return (
     <div style={{ minHeight: '100vh', background: '#000', color: '#fff', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', display: 'flex' }}>
@@ -251,16 +290,19 @@ function MessagesInner() {
         .msg-input:focus{border-color:${GREEN}66}
         .msg-input::placeholder{color:rgba(255,255,255,.25)}
 
-        .send-btn, .attach-btn{
-          width:42px;height:42px;border-radius:50%;border:none;
+        .send-btn, .attach-btn, .compose-btn{
+          border-radius:50%;border:none;
           display:flex;align-items:center;justify-content:center;cursor:pointer;
           flex-shrink:0;transition:background .2s;
         }
+        .send-btn, .attach-btn{ width:42px;height:42px; }
         .send-btn{background:${GREEN}}
         .send-btn:hover:not(:disabled){background:#00c853}
         .send-btn:disabled{opacity:.5;cursor:not-allowed}
         .attach-btn{background:rgba(255,255,255,.06);color:rgba(255,255,255,.6)}
         .attach-btn:hover{background:rgba(255,255,255,.1);color:#fff}
+        .compose-btn{ width:34px;height:34px;background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.25);color:${GREEN}; }
+        .compose-btn:hover{background:rgba(0,230,118,.18)}
 
         .search-input{
           width:100%;padding:.75rem 1rem;background:rgba(255,255,255,.04);
@@ -283,73 +325,106 @@ function MessagesInner() {
 
       <Sidebar />
 
-      <div className="msg-shell" data-thread-open={!!activeId} style={{ flex: 1, display: 'flex', maxWidth: '1000px', margin: '0 auto', height: '100vh', paddingBottom: '0' }}>
+      <div className="msg-shell" data-thread-open={!!activeId} style={{ flex: 1, display: 'flex', maxWidth: '1000px', margin: '0 auto', height: '100vh' }}>
 
         <div className="conv-list" style={{ width: '340px', flexShrink: 0, borderRight: '1px solid rgba(255,255,255,.06)', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ padding: '1.5rem 1rem 1rem' }}>
-            <h2 style={{ fontSize: '1.15rem', fontWeight: '800', marginBottom: '1rem' }}>Messages</h2>
-            <input
-              className="search-input"
-              placeholder="Search people or conversations"
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-            />
-          </div>
 
-          <div style={{ flex: 1, overflowY: 'auto', padding: '0 .5rem' }}>
-            {conversationRows.length === 0 && !term && (
-              <p style={{ color: 'rgba(255,255,255,.3)', fontSize: '.85rem', textAlign: 'center', padding: '2rem 1rem' }}>
-                No conversations yet. Search a name above to find someone.
-              </p>
-            )}
-
-            {conversationRows.map(({ conv, otherUid: oUid, info }) => (
-              <div
-                key={conv.id}
-                className={`conv-row${conv.id === activeId ? ' active' : ''}`}
-                onClick={() => setActiveId(conv.id)}
-              >
-                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(0,230,118,.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '.9rem', fontWeight: '700', color: GREEN, flexShrink: 0, overflow: 'hidden' }}>
-                  {info?.photo ? <img src={info.photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (info?.name || 'U')[0].toUpperCase()}
-                </div>
-                <div style={{ overflow: 'hidden', flex: 1 }}>
-                  <p style={{ fontSize: '.92rem', fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{info?.name || 'User'}</p>
-                  <p style={{ fontSize: '.78rem', color: 'rgba(255,255,255,.35)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {conv.lastMessage || 'Say hello'}
-                  </p>
-                </div>
+          {!composeOpen ? (
+            <>
+              <div style={{ padding: '1.5rem 1rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h2 style={{ fontSize: '1.15rem', fontWeight: '800' }}>Messages</h2>
+                <button className="compose-btn" onClick={openCompose} aria-label="New message">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                </button>
               </div>
-            ))}
 
-            {newPeopleMatches.length > 0 && (
-              <>
-                <p style={{ fontSize: '.72rem', fontWeight: '700', letterSpacing: '.05em', textTransform: 'uppercase', color: 'rgba(255,255,255,.25)', padding: '1rem 1rem .5rem' }}>
-                  People
-                </p>
-                {newPeopleMatches.map(u => (
-                  <div key={u.uid} className="dir-row" onClick={() => router.push(`/profile/${u.uid}`)}>
+              <div style={{ flex: 1, overflowY: 'auto', padding: '0 .5rem' }}>
+                {conversations.length === 0 && (
+                  <p style={{ color: 'rgba(255,255,255,.3)', fontSize: '.85rem', textAlign: 'center', padding: '2rem 1rem' }}>
+                    No conversations yet. Tap the pencil icon to message someone.
+                  </p>
+                )}
+                {conversations.map(conv => {
+                  const oUid = conv.participants.find(p => p !== user.uid) || ''
+                  const info = liveInfo[oUid] || conv.participantInfo?.[oUid]
+                  return (
+                    <div
+                      key={conv.id}
+                      className={`conv-row${conv.id === activeId ? ' active' : ''}`}
+                      onClick={() => setActiveId(conv.id)}
+                    >
+                      <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(0,230,118,.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '.9rem', fontWeight: '700', color: GREEN, flexShrink: 0, overflow: 'hidden' }}>
+                        {info?.photo ? <img src={info.photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (info?.name || 'U')[0].toUpperCase()}
+                      </div>
+                      <div style={{ overflow: 'hidden', flex: 1 }}>
+                        <p style={{ fontSize: '.92rem', fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{info?.name || 'User'}</p>
+                        <p style={{ fontSize: '.78rem', color: 'rgba(255,255,255,.35)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {conv.lastMessage || 'Say hello'}
+                        </p>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', flex: 1, animation: 'fadeUp .2s ease' }}>
+              <div style={{ padding: '1.5rem 1rem 1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <button
+                  onClick={() => setComposeOpen(false)}
+                  style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: '4px' }}
+                  aria-label="Close"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
+                <h2 style={{ fontSize: '1.1rem', fontWeight: '800' }}>New message</h2>
+              </div>
+              <div style={{ padding: '0 1rem 1rem' }}>
+                <input
+                  className="search-input"
+                  placeholder="Search people by name or email"
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  autoFocus
+                />
+                {composeError && (
+                  <p style={{ color: '#fca5a5', fontSize: '.78rem', marginTop: '.5rem' }}>{composeError}</p>
+                )}
+              </div>
+              <div style={{ flex: 1, overflowY: 'auto', padding: '0 .5rem' }}>
+                {!directoryLoaded && !composeError && (
+                  <p style={{ color: 'rgba(255,255,255,.3)', fontSize: '.85rem', textAlign: 'center', padding: '2rem 1rem' }}>Loading people...</p>
+                )}
+                {directoryLoaded && filteredDirectory.length === 0 && (
+                  <p style={{ color: 'rgba(255,255,255,.3)', fontSize: '.85rem', textAlign: 'center', padding: '2rem 1rem' }}>
+                    {directory.length === 0 ? 'No other Merj users yet.' : 'No matches found.'}
+                  </p>
+                )}
+                {filteredDirectory.map(u => (
+                  <div
+                    key={u.uid}
+                    className="dir-row"
+                    onClick={() => !starting && startConversationWith(u.uid, u.name, u.photo)}
+                    style={{ opacity: starting ? .6 : 1, pointerEvents: starting ? 'none' : 'auto' }}
+                  >
                     <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(0,230,118,.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '.9rem', fontWeight: '700', color: GREEN, flexShrink: 0, overflow: 'hidden' }}>
                       {u.photo ? <img src={u.photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : u.name[0].toUpperCase()}
                     </div>
                     <div style={{ overflow: 'hidden' }}>
                       <p style={{ fontSize: '.92rem', fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{u.name}</p>
-                      <p style={{ fontSize: '.78rem', color: 'rgba(255,255,255,.35)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>View profile</p>
+                      <p style={{ fontSize: '.78rem', color: 'rgba(255,255,255,.35)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{u.email}</p>
                     </div>
                   </div>
                 ))}
-              </>
-            )}
-
-            {term && conversationRows.length === 0 && newPeopleMatches.length === 0 && (
-              <p style={{ color: 'rgba(255,255,255,.3)', fontSize: '.85rem', textAlign: 'center', padding: '2rem 1rem' }}>No matches found.</p>
-            )}
-          </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="thread-panel" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
           {!activeId ? (
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,.3)', fontSize: '.9rem' }}>
-              Select a conversation or search for someone
+              Select a conversation or tap the pencil icon
             </div>
           ) : (
             <>
