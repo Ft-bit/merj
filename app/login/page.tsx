@@ -37,7 +37,7 @@ function GoogleIcon() {
 }
 
 export default function LoginPage() {
-  const { user, loading: authLoading, loginWithGoogle, loginWithEmail, registerWithEmail, resendVerification, checkVerification } = useAuth()
+  const { user, loading: authLoading, loginWithGoogle, loginWithEmail, registerWithEmail, resendVerification, checkVerification, resetPassword } = useAuth()
   const router = useRouter()
 
   const [panel, setPanel] = useState<'signin' | 'register'>('signin')
@@ -62,8 +62,9 @@ export default function LoginPage() {
   }, [])
 
   useEffect(() => {
-  if (user && user.emailVerified) router.push('/dashboard')
-}, [user, router])
+    if (user && user.emailVerified) router.push('/dashboard')
+  }, [user, router])
+
   const switchPanel = (to: 'signin' | 'register') => {
     setPanelAnim(true)
     setTimeout(() => {
@@ -83,10 +84,8 @@ export default function LoginPage() {
     } catch (e: any) {
       const code = e?.code || ''
       if (code === 'auth/popup-closed-by-user') setError('Popup closed — try again.')
-      else if (code === 'auth/popup-blocked') setError('Your browser blocked the popup. Allow popups for this site and try again.')
-      else if (code === 'auth/cancelled-popup-request') setError('Please wait — sign-in already in progress.')
       else if (code === 'auth/unauthorized-domain') setError('Add this domain in Firebase Console → Auth → Authorized Domains.')
-      else setError(`Google sign-in failed${code ? ` (${code})` : ''}. Please try again.`)
+      else setError('Google sign-in failed. Please try again.')
     }
     setLoading(false)
   }
@@ -158,16 +157,16 @@ export default function LoginPage() {
     }
     setResetLoading(false)
   }
-  if (authLoading || (user && user.emailVerified)) {
-  return (
-    <div style={{ minHeight: '100vh', background: '#060606', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ width: '40px', height: '40px', border: `2px solid rgba(0,230,118,.2)`, borderTop: `2px solid ${GREEN}`, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-    </div>
-  )
-}
 
-  // ── VERIFY SCREEN ──
+  if (authLoading || (user && user.emailVerified)) {
+    return (
+      <div style={{ minHeight: '100vh', background: '#060606', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ width: '40px', height: '40px', border: `2px solid rgba(0,230,118,.2)`, borderTop: `2px solid ${GREEN}`, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      </div>
+    )
+  }
+
   if (showVerify) {
     return (
       <div style={{ minHeight: '100vh', background: '#060606', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif' }}>
@@ -200,7 +199,6 @@ export default function LoginPage() {
     )
   }
 
-  // ── MAIN LOGIN ──
   return (
     <div style={{ minHeight: '100vh', background: '#060606', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', overflow: 'hidden', position: 'relative' }}>
 
@@ -285,17 +283,14 @@ export default function LoginPage() {
         }
       `}</style>
 
-      {/* Background orbs */}
       <div style={{ position: 'absolute', width: '500px', height: '500px', borderRadius: '50%', background: 'rgba(0,230,118,.07)', top: '-150px', right: '-150px', filter: 'blur(100px)', animation: 'orbPulse 5s ease-in-out infinite', pointerEvents: 'none' }} />
       <div style={{ position: 'absolute', width: '350px', height: '350px', borderRadius: '50%', background: 'rgba(0,230,118,.05)', bottom: '-100px', left: '-100px', filter: 'blur(80px)', animation: 'orbPulse 6s ease-in-out infinite 2s', pointerEvents: 'none' }} />
 
-      {/* Back button */}
       <button className="back-btn" onClick={() => router.push('/')}>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
         Back
       </button>
 
-      {/* Card */}
       <div style={{
         width: '100%', maxWidth: '920px',
         display: 'flex',
@@ -307,16 +302,13 @@ export default function LoginPage() {
         minHeight: '580px',
       }}>
 
-        {/* FORM SIDE */}
         <div className="form-side" style={{ flex: 1, background: '#0d0d0d', padding: '3rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
 
-          {/* Logo */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '9px', marginBottom: '2.5rem' }}>
             <div style={{ width: '30px', height: '30px', background: GREEN, borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900', fontSize: '15px', color: '#000' }}>M</div>
             <span style={{ fontWeight: '800', fontSize: '1.1rem', color: '#fff', letterSpacing: '-.02em' }}>Merj</span>
           </div>
 
-          {/* Form content — animates when switching */}
           <div
             key={panel}
             style={{ animation: panelAnim ? 'fadeOut .25s ease forwards' : `${isRegister ? 'formInR' : 'formIn'} .4s cubic-bezier(.22,1,.36,1)` }}
@@ -330,7 +322,6 @@ export default function LoginPage() {
                 : 'Sign in to your Merj account'}
             </p>
 
-            {/* Google */}
             <button className="btn-google" onClick={handleGoogle} disabled={loading}>
               <GoogleIcon />
               Continue with Google
@@ -408,7 +399,6 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* RIGHT PANEL */}
         <div
           className="right-panel"
           style={{
