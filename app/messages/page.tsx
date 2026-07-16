@@ -7,8 +7,10 @@ import {
   collection, query, where, orderBy, onSnapshot,
   doc, getDoc, setDoc, addDoc, serverTimestamp, getDocs, limit,
 } from 'firebase/firestore'
-import { db } from '../../lib/firebase'
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
+import { db, storage } from '../../lib/firebase'
 import Sidebar from '../../components/Sidebar'
+import { linkifyText } from '../../lib/linkify'
 
 const GREEN = '#00e676'
 
@@ -22,7 +24,9 @@ interface Conversation {
 
 interface Message {
   id: string
-  text: string
+  text?: string
+  type?: 'image' | 'video'
+  mediaUrl?: string
   senderId: string
   createdAt: any
 }
@@ -34,29 +38,26 @@ interface DirectoryUser {
   photo: string
 }
 
-function conversationId(a: string, b: string) {
-  return [a, b].sort().join('_')
-}
-
 function MessagesInner() {
   const { user, loading } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
 
   const [conversations, setConversations] = useState<Conversation[]>([])
+  const [liveInfo, setLiveInfo] = useState<Record<string, { name: string; photo: string }>>({})
+
   const [activeId, setActiveId] = useState<string | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [text, setText] = useState('')
   const [sending, setSending] = useState(false)
+  const [uploadingMedia, setUploadingMedia] = useState(false)
+  const [error, setError] = useState('')
 
-  const [showNew, setShowNew] = useState(false)
   const [directory, setDirectory] = useState<DirectoryUser[]>([])
-  const [directoryLoading, setDirectoryLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
-  const [starting, setStarting] = useState(false)
-  const [directoryError, setDirectoryError] = useState('')
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (!loading && (!user || !user.emailVerified)) router.push('/login')
@@ -81,14 +82,52 @@ function MessagesInner() {
   }, [user])
 
   useEffect(() => {
+    if (!user) return
+    const uidsNeeded = new Set<string>()
+    conversations.forEach(c => {
+      const other = c.participants.find(p => p !== user.uid)
+      if (other && !liveInfo[other]) uidsNeeded.add(other)
+    })
+    if (uidsNeeded.size === 0) return
+    ;(async () => {
+      const updates: Record<string, { name: string; photo: string }> = {}
+      await Promise.all(Array.from(uidsNeeded).map(async uid => {
+        try {
+          const snap = await getDoc(doc(db, 'users', uid))
+          if (snap.exists()) {
+            const d = snap.data()
+            updates[uid] = { name: d.name || 'User', photo: d.photo || '' }
+          }
+        } catch {}
+      }))
+      if (Object.keys(updates).length) setLiveInfo(prev => ({ ...prev, ...updates }))
+    })()
+  }, [conversations, user])
+
+  useEffect(() => {
+    if (!user) return
+    getDocs(query(collection(db, 'users'), limit(200)))
+      .then(snap => {
+        setDirectory(
+          snap.docs
+            .filter(d => d.id !== user.uid)
+            .map(d => ({
+              uid: d.id,
+              name: d.data().name || 'User',
+              email: d.data().email || '',
+              photo: d.data().photo || '',
+            }))
+        )
+      })
+      .catch(() => {})
+  }, [user])
+
+  useEffect(() => {
     if (!activeId) {
       setMessages([])
       return
     }
-    const q = query(
-      collection(db, 'conversations', activeId, 'messages'),
-      orderBy('createdAt', 'asc')
-    )
+    const q = query(collection(db, 'conversations', activeId, 'messages'), orderBy('createdAt', 'asc'))
     const unsub = onSnapshot(q, snap => {
       setMessages(snap.docs.map(d => ({ id: d.id, ...d.data() } as Message)))
     })
@@ -98,64 +137,6 @@ function MessagesInner() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
-
-  const openDirectory = async () => {
-    setShowNew(true)
-    setDirectoryError('')
-    if (directory.length > 0) return
-    setDirectoryLoading(true)
-    try {
-      const snap = await getDocs(query(collection(db, 'users'), limit(100)))
-      const users: DirectoryUser[] = snap.docs
-        .filter(d => d.id !== user?.uid)
-        .map(d => ({
-          uid: d.id,
-          name: d.data().name || 'User',
-          email: d.data().email || '',
-          photo: d.data().photo || '',
-        }))
-      setDirectory(users)
-    } catch {
-      // Directory stays empty; the list below shows nothing to search.
-    }
-    setDirectoryLoading(false)
-  }
-
-  const startConversationWith = async (otherUid: string, otherName: string, otherPhoto: string) => {
-    if (!user) return
-    setStarting(true)
-    try {
-      const convId = conversationId(user.uid, otherUid)
-      const convRef = doc(db, 'conversations', convId)
-      const convSnap = await getDoc(convRef)
-
-      if (!convSnap.exists()) {
-        const meSnap = await getDoc(doc(db, 'users', user.uid))
-        const meData = meSnap.exists() ? meSnap.data() : {}
-
-        await setDoc(convRef, {
-          participants: [user.uid, otherUid],
-          participantInfo: {
-            [user.uid]: { name: meData?.name || user.displayName || 'User', photo: meData?.photo || user.photoURL || '' },
-            [otherUid]: { name: otherName, photo: otherPhoto },
-          },
-          lastMessage: '',
-          lastMessageAt: serverTimestamp(),
-        })
-      }
-
-      setActiveId(convId)
-      setShowNew(false)
-      setSearchTerm('')
-    } catch (e: any) {
-      if (e?.code === 'permission-denied') {
-        setDirectoryError('Could not start conversation — permission denied. Check Firestore rules.')
-      } else {
-        setDirectoryError('Could not start conversation. Please try again.')
-      }
-    }
-    setStarting(false)
-  }
 
   const handleSend = async () => {
     if (!user || !activeId || !text.trim()) return
@@ -174,8 +155,49 @@ function MessagesInner() {
       }, { merge: true })
     } catch {
       setText(messageText)
+      setError('Message failed to send. Please try again.')
     }
     setSending(false)
+  }
+
+  const handleMediaUpload = async (file: File) => {
+    if (!user || !activeId) return
+    if (!storage) {
+      setError('Photo and video sharing needs Storage enabled on this project.')
+      return
+    }
+    const isImage = file.type.startsWith('image/')
+    const isVideo = file.type.startsWith('video/')
+    if (!isImage && !isVideo) {
+      setError('Only images and videos can be sent.')
+      return
+    }
+    if (file.size > 25 * 1024 * 1024) {
+      setError('File must be smaller than 25MB.')
+      return
+    }
+    setError('')
+    setUploadingMedia(true)
+    try {
+      const path = `chat/${activeId}/${Date.now()}_${file.name}`
+      const storageRef = ref(storage, path)
+      await uploadBytes(storageRef, file)
+      const url = await getDownloadURL(storageRef)
+
+      await addDoc(collection(db, 'conversations', activeId, 'messages'), {
+        type: isImage ? 'image' : 'video',
+        mediaUrl: url,
+        senderId: user.uid,
+        createdAt: serverTimestamp(),
+      })
+      await setDoc(doc(db, 'conversations', activeId), {
+        lastMessage: isImage ? '📷 Photo' : '🎥 Video',
+        lastMessageAt: serverTimestamp(),
+      }, { merge: true })
+    } catch {
+      setError('Could not send that file. Please try again.')
+    }
+    setUploadingMedia(false)
   }
 
   if (loading) {
@@ -190,13 +212,22 @@ function MessagesInner() {
 
   const activeConv = conversations.find(c => c.id === activeId)
   const otherUid = activeConv?.participants.find(p => p !== user.uid)
-  const otherInfo = otherUid ? activeConv?.participantInfo?.[otherUid] : null
+  const otherInfo = otherUid ? (liveInfo[otherUid] || activeConv?.participantInfo?.[otherUid]) : null
 
-  const filteredDirectory = directory.filter(u => {
-    const term = searchTerm.trim().toLowerCase()
-    if (!term) return true
-    return u.name.toLowerCase().includes(term) || u.email.toLowerCase().includes(term)
-  })
+  const term = searchTerm.trim().toLowerCase()
+
+  const conversationRows = conversations
+    .map(c => {
+      const oUid = c.participants.find(p => p !== user.uid) || ''
+      const info = liveInfo[oUid] || c.participantInfo?.[oUid]
+      return { conv: c, otherUid: oUid, info }
+    })
+    .filter(row => !term || (row.info?.name || '').toLowerCase().includes(term))
+
+  const existingUids = new Set(conversations.map(c => c.participants.find(p => p !== user.uid)))
+  const newPeopleMatches = term
+    ? directory.filter(u => !existingUids.has(u.uid) && (u.name.toLowerCase().includes(term) || u.email.toLowerCase().includes(term)))
+    : []
 
   return (
     <div style={{ minHeight: '100vh', background: '#000', color: '#fff', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', display: 'flex' }}>
@@ -220,131 +251,125 @@ function MessagesInner() {
         .msg-input:focus{border-color:${GREEN}66}
         .msg-input::placeholder{color:rgba(255,255,255,.25)}
 
-        .send-btn{
-          width:42px;height:42px;border-radius:50%;background:${GREEN};border:none;
+        .send-btn, .attach-btn{
+          width:42px;height:42px;border-radius:50%;border:none;
           display:flex;align-items:center;justify-content:center;cursor:pointer;
           flex-shrink:0;transition:background .2s;
         }
+        .send-btn{background:${GREEN}}
         .send-btn:hover:not(:disabled){background:#00c853}
         .send-btn:disabled{opacity:.5;cursor:not-allowed}
+        .attach-btn{background:rgba(255,255,255,.06);color:rgba(255,255,255,.6)}
+        .attach-btn:hover{background:rgba(255,255,255,.1);color:#fff}
 
-        .new-chat-input{
+        .search-input{
           width:100%;padding:.75rem 1rem;background:rgba(255,255,255,.04);
           border:1px solid rgba(255,255,255,.09);border-radius:10px;
           color:#fff;font-size:.9rem;outline:none;font-family:inherit;
         }
-        .new-chat-input:focus{border-color:${GREEN}66}
-        .new-chat-input::placeholder{color:rgba(255,255,255,.25)}
+        .search-input:focus{border-color:${GREEN}66}
+        .search-input::placeholder{color:rgba(255,255,255,.25)}
+
+        .back-mobile{ display:none }
 
         @media(max-width:900px){ .app-sidebar{display:none!important} }
-        @media(max-width:700px){ .conv-list{display:none} }
+
+        @media(max-width:700px){
+          .msg-shell[data-thread-open="true"] .conv-list{display:none}
+          .msg-shell[data-thread-open="false"] .thread-panel{display:none}
+          .back-mobile{ display:inline-flex!important }
+        }
       `}</style>
 
       <Sidebar />
 
-      <div style={{ flex: 1, display: 'flex', maxWidth: '1000px', margin: '0 auto', height: '100vh' }}>
+      <div className="msg-shell" data-thread-open={!!activeId} style={{ flex: 1, display: 'flex', maxWidth: '1000px', margin: '0 auto', height: '100vh', paddingBottom: '0' }}>
 
-        <div className="conv-list" style={{ width: '320px', flexShrink: 0, borderRight: '1px solid rgba(255,255,255,.06)', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ padding: '1.5rem 1rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h2 style={{ fontSize: '1.15rem', fontWeight: '800' }}>Messages</h2>
-            <button
-              onClick={() => (showNew ? setShowNew(false) : openDirectory())}
-              style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'rgba(0,230,118,.1)', border: '1px solid rgba(0,230,118,.25)', color: GREEN, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              aria-label="New message"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 5v14M5 12h14"/></svg>
-            </button>
+        <div className="conv-list" style={{ width: '340px', flexShrink: 0, borderRight: '1px solid rgba(255,255,255,.06)', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ padding: '1.5rem 1rem 1rem' }}>
+            <h2 style={{ fontSize: '1.15rem', fontWeight: '800', marginBottom: '1rem' }}>Messages</h2>
+            <input
+              className="search-input"
+              placeholder="Search people or conversations"
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+            />
           </div>
 
-          {showNew ? (
-            <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden', animation: 'fadeUp .2s ease' }}>
-              <div style={{ padding: '0 1rem 1rem' }}>
-                <input
-                  className="new-chat-input"
-                  placeholder="Search people by name or email"
-                  value={searchTerm}
-                  onChange={e => setSearchTerm(e.target.value)}
-                  autoFocus
-                />
-                {directoryError && (
-                  <p style={{ color: '#fca5a5', fontSize: '.78rem', marginTop: '.5rem' }}>{directoryError}</p>
-                )}
-              </div>
-              <div style={{ flex: 1, overflowY: 'auto', padding: '0 .5rem' }}>
-                {directoryLoading && (
-                  <p style={{ color: 'rgba(255,255,255,.3)', fontSize: '.85rem', textAlign: 'center', padding: '2rem 1rem' }}>Loading people...</p>
-                )}
-                {!directoryLoading && filteredDirectory.length === 0 && (
-                  <p style={{ color: 'rgba(255,255,255,.3)', fontSize: '.85rem', textAlign: 'center', padding: '2rem 1rem' }}>
-                    {directory.length === 0 ? 'No other Merj users yet.' : 'No matches found.'}
+          <div style={{ flex: 1, overflowY: 'auto', padding: '0 .5rem' }}>
+            {conversationRows.length === 0 && !term && (
+              <p style={{ color: 'rgba(255,255,255,.3)', fontSize: '.85rem', textAlign: 'center', padding: '2rem 1rem' }}>
+                No conversations yet. Search a name above to find someone.
+              </p>
+            )}
+
+            {conversationRows.map(({ conv, otherUid: oUid, info }) => (
+              <div
+                key={conv.id}
+                className={`conv-row${conv.id === activeId ? ' active' : ''}`}
+                onClick={() => setActiveId(conv.id)}
+              >
+                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(0,230,118,.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '.9rem', fontWeight: '700', color: GREEN, flexShrink: 0, overflow: 'hidden' }}>
+                  {info?.photo ? <img src={info.photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (info?.name || 'U')[0].toUpperCase()}
+                </div>
+                <div style={{ overflow: 'hidden', flex: 1 }}>
+                  <p style={{ fontSize: '.92rem', fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{info?.name || 'User'}</p>
+                  <p style={{ fontSize: '.78rem', color: 'rgba(255,255,255,.35)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {conv.lastMessage || 'Say hello'}
                   </p>
-                )}
-                {filteredDirectory.map(u => (
-                  <div
-                    key={u.uid}
-                    className="dir-row"
-                    onClick={() => !starting && startConversationWith(u.uid, u.name, u.photo)}
-                    style={{ opacity: starting ? .6 : 1, pointerEvents: starting ? 'none' : 'auto' }}
-                  >
-                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(0,230,118,.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '.9rem', fontWeight: '700', color: GREEN, flexShrink: 0, overflow: 'hidden' }}>
+                </div>
+              </div>
+            ))}
+
+            {newPeopleMatches.length > 0 && (
+              <>
+                <p style={{ fontSize: '.72rem', fontWeight: '700', letterSpacing: '.05em', textTransform: 'uppercase', color: 'rgba(255,255,255,.25)', padding: '1rem 1rem .5rem' }}>
+                  People
+                </p>
+                {newPeopleMatches.map(u => (
+                  <div key={u.uid} className="dir-row" onClick={() => router.push(`/profile/${u.uid}`)}>
+                    <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(0,230,118,.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '.9rem', fontWeight: '700', color: GREEN, flexShrink: 0, overflow: 'hidden' }}>
                       {u.photo ? <img src={u.photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : u.name[0].toUpperCase()}
                     </div>
                     <div style={{ overflow: 'hidden' }}>
-                      <p style={{ fontSize: '.9rem', fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{u.name}</p>
-                      <p style={{ fontSize: '.78rem', color: 'rgba(255,255,255,.35)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{u.email}</p>
+                      <p style={{ fontSize: '.92rem', fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{u.name}</p>
+                      <p style={{ fontSize: '.78rem', color: 'rgba(255,255,255,.35)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>View profile</p>
                     </div>
                   </div>
                 ))}
-              </div>
-            </div>
-          ) : (
-            <div style={{ flex: 1, overflowY: 'auto', padding: '0 .5rem' }}>
-              {conversations.length === 0 && (
-                <p style={{ color: 'rgba(255,255,255,.3)', fontSize: '.85rem', textAlign: 'center', padding: '2rem 1rem' }}>
-                  No conversations yet. Tap + to find someone to message.
-                </p>
-              )}
-              {conversations.map(conv => {
-                const cOtherUid = conv.participants.find(p => p !== user.uid)
-                const info = cOtherUid ? conv.participantInfo?.[cOtherUid] : null
-                return (
-                  <div
-                    key={conv.id}
-                    className={`conv-row${conv.id === activeId ? ' active' : ''}`}
-                    onClick={() => setActiveId(conv.id)}
-                  >
-                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(0,230,118,.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '.9rem', fontWeight: '700', color: GREEN, flexShrink: 0, overflow: 'hidden' }}>
-                      {info?.photo ? <img src={info.photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (info?.name || 'U')[0].toUpperCase()}
-                    </div>
-                    <div style={{ overflow: 'hidden', flex: 1 }}>
-                      <p style={{ fontSize: '.9rem', fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{info?.name || 'User'}</p>
-                      <p style={{ fontSize: '.78rem', color: 'rgba(255,255,255,.35)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {conv.lastMessage || 'Say hello'}
-                      </p>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
+              </>
+            )}
+
+            {term && conversationRows.length === 0 && newPeopleMatches.length === 0 && (
+              <p style={{ color: 'rgba(255,255,255,.3)', fontSize: '.85rem', textAlign: 'center', padding: '2rem 1rem' }}>No matches found.</p>
+            )}
+          </div>
         </div>
 
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <div className="thread-panel" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
           {!activeId ? (
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,.3)', fontSize: '.9rem' }}>
-              Select a conversation or start a new one
+              Select a conversation or search for someone
             </div>
           ) : (
             <>
-              <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid rgba(255,255,255,.06)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ padding: '1.1rem 1.5rem', borderBottom: '1px solid rgba(255,255,255,.06)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <button
+                  className="back-mobile"
+                  onClick={() => setActiveId(null)}
+                  style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: '4px' }}
+                  aria-label="Back to conversations"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                </button>
                 <div
-                  style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'rgba(0,230,118,.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '.85rem', fontWeight: '700', color: GREEN, overflow: 'hidden', cursor: otherUid ? 'pointer' : 'default' }}
+                  style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'rgba(0,230,118,.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '.85rem', fontWeight: '700', color: GREEN, overflow: 'hidden', cursor: 'pointer' }}
                   onClick={() => otherUid && router.push(`/profile/${otherUid}`)}
                 >
                   {otherInfo?.photo ? <img src={otherInfo.photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (otherInfo?.name || 'U')[0].toUpperCase()}
                 </div>
                 <p
-                  style={{ fontWeight: '700', fontSize: '.95rem', cursor: otherUid ? 'pointer' : 'default' }}
+                  style={{ fontWeight: '700', fontSize: '.95rem', cursor: 'pointer' }}
                   onClick={() => otherUid && router.push(`/profile/${otherUid}`)}
                 >
                   {otherInfo?.name || 'User'}
@@ -357,14 +382,25 @@ function MessagesInner() {
                   return (
                     <div key={msg.id} style={{ display: 'flex', justifyContent: mine ? 'flex-end' : 'flex-start' }}>
                       <div style={{
-                        maxWidth: '65%', padding: '.65rem 1rem', borderRadius: '16px',
+                        maxWidth: '70%', padding: msg.type ? '6px' : '.65rem 1rem', borderRadius: '16px',
                         background: mine ? GREEN : 'rgba(255,255,255,.06)',
                         color: mine ? '#000' : '#fff',
                         fontSize: '.9rem', lineHeight: 1.5,
                         borderBottomRightRadius: mine ? '4px' : '16px',
                         borderBottomLeftRadius: mine ? '16px' : '4px',
+                        overflow: 'hidden',
                       }}>
-                        {msg.text}
+                        {msg.type === 'image' && msg.mediaUrl && (
+                          <img src={msg.mediaUrl} alt="" style={{ maxWidth: '260px', width: '100%', display: 'block', borderRadius: '12px' }} />
+                        )}
+                        {msg.type === 'video' && msg.mediaUrl && (
+                          <video src={msg.mediaUrl} controls style={{ maxWidth: '260px', width: '100%', display: 'block', borderRadius: '12px' }} />
+                        )}
+                        {msg.text && (
+                          <div style={{ padding: msg.type ? '.5rem .25rem 0' : 0 }}>
+                            {linkifyText(msg.text, mine ? '#003d22' : GREEN)}
+                          </div>
+                        )}
                       </div>
                     </div>
                   )
@@ -372,7 +408,30 @@ function MessagesInner() {
                 <div ref={messagesEndRef} />
               </div>
 
-              <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid rgba(255,255,255,.06)', display: 'flex', gap: '.75rem' }}>
+              {error && (
+                <p style={{ color: '#fca5a5', fontSize: '.8rem', padding: '0 1.5rem' }}>{error}</p>
+              )}
+
+              <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid rgba(255,255,255,.06)', display: 'flex', gap: '.6rem', alignItems: 'center' }}>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*,video/*"
+                  style={{ display: 'none' }}
+                  onChange={e => e.target.files?.[0] && handleMediaUpload(e.target.files[0])}
+                />
+                <button
+                  className="attach-btn"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingMedia}
+                  aria-label="Attach photo or video"
+                >
+                  {uploadingMedia ? (
+                    <div style={{ width: '14px', height: '14px', border: '2px solid rgba(255,255,255,.3)', borderTop: '2px solid #fff', borderRadius: '50%', animation: 'spin .8s linear infinite' }} />
+                  ) : (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+                  )}
+                </button>
                 <input
                   className="msg-input"
                   placeholder="Message"
