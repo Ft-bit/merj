@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '../context/AuthContext'
+import UsernameGate from './UsernameGate'
 
 const GREEN = '#00e676'
 
@@ -61,6 +62,7 @@ export default function Sidebar() {
 
   return (
     <>
+      <UsernameGate />
       <style>{`
         .sb-item{
           display:flex;align-items:center;gap:14px;padding:.75rem 1rem;
