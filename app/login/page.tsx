@@ -6,6 +6,14 @@ import { useRouter } from 'next/navigation'
 
 const GREEN = '#00e676'
 
+function passwordRequirements(password: string) {
+  return [
+    { label: 'Starts with an uppercase letter', met: /^[A-Z]/.test(password) },
+    { label: 'At least 6 characters', met: password.length >= 6 },
+    { label: 'Contains a symbol (!@#$%^&* etc.)', met: /[^A-Za-z0-9]/.test(password) },
+  ]
+}
+
 function EyeOpen() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -93,6 +101,15 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+
+    if (isRegister) {
+      const reqs = passwordRequirements(password)
+      if (!reqs.every(r => r.met)) {
+        setError('Password does not meet all the requirements below.')
+        return
+      }
+    }
+
     setLoading(true)
     try {
       if (isRegister) {
@@ -366,6 +383,21 @@ export default function LoginPage() {
                     {showPw ? <EyeOpen /> : <EyeClosed />}
                   </button>
                 </div>
+
+                {isRegister && (
+                  <div style={{ marginTop: '.6rem', display: 'flex', flexDirection: 'column', gap: '.35rem' }}>
+                    {passwordRequirements(password).map(req => (
+                      <div key={req.label} style={{ display: 'flex', alignItems: 'center', gap: '7px', fontSize: '.78rem', color: req.met ? GREEN : 'rgba(255,255,255,.35)' }}>
+                        {req.met ? (
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 6L9 17l-5-5"/></svg>
+                        ) : (
+                          <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'rgba(255,255,255,.3)' }} />
+                        )}
+                        {req.label}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {resetSent && !isRegister && (
