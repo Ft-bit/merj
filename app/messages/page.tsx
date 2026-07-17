@@ -48,6 +48,8 @@ function MessagesInner() {
   const searchParams = useSearchParams()
 
   const [conversations, setConversations] = useState<Conversation[]>([])
+  const [inboxError, setInboxError] = useState('')
+  const [focusedThread, setFocusedThread] = useState(false)
   const [liveInfo, setLiveInfo] = useState<Record<string, { name: string; photo: string }>>({})
 
   const [activeId, setActiveId] = useState<string | null>(null)
@@ -73,7 +75,10 @@ function MessagesInner() {
 
   useEffect(() => {
     const openId = searchParams.get('open')
-    if (openId) setActiveId(openId)
+    if (openId) {
+      setActiveId(openId)
+      setFocusedThread(true)
+    }
   }, [searchParams])
 
   useEffect(() => {
@@ -83,9 +88,20 @@ function MessagesInner() {
       where('participants', 'array-contains', user.uid),
       orderBy('lastMessageAt', 'desc')
     )
-    const unsub = onSnapshot(q, snap => {
-      setConversations(snap.docs.map(d => ({ id: d.id, ...d.data() } as Conversation)))
-    })
+    const unsub = onSnapshot(
+      q,
+      snap => {
+        setConversations(snap.docs.map(d => ({ id: d.id, ...d.data() } as Conversation)))
+        setInboxError('')
+      },
+      (err) => {
+        if (err.code === 'failed-precondition') {
+          setInboxError('Your inbox needs a one-time Firestore index. Check the browser console for a "Create Index" link, click it, and this will fix itself in about a minute.')
+        } else {
+          setInboxError('Could not load your conversations. Please refresh.')
+        }
+      }
+    )
     return () => unsub()
   }, [user])
 
@@ -321,11 +337,14 @@ function MessagesInner() {
           .msg-shell[data-thread-open="false"] .thread-panel{display:none}
           .back-mobile{ display:inline-flex!important }
         }
+
+        .msg-shell.focused .conv-list{ display:none!important }
+        .msg-shell.focused .back-mobile{ display:inline-flex!important }
       `}</style>
 
       <Sidebar />
 
-      <div className="msg-shell" data-thread-open={!!activeId} style={{ flex: 1, display: 'flex', maxWidth: '1000px', margin: '0 auto', height: '100vh' }}>
+      <div className={`msg-shell${focusedThread ? ' focused' : ''}`} data-thread-open={!!activeId} style={{ flex: 1, display: 'flex', maxWidth: '1000px', margin: '0 auto', height: '100vh' }}>
 
         <div className="conv-list" style={{ width: '340px', flexShrink: 0, borderRight: '1px solid rgba(255,255,255,.06)', display: 'flex', flexDirection: 'column' }}>
 
@@ -339,7 +358,12 @@ function MessagesInner() {
               </div>
 
               <div style={{ flex: 1, overflowY: 'auto', padding: '0 .5rem' }}>
-                {conversations.length === 0 && (
+                {inboxError && (
+                  <p style={{ color: '#fca5a5', fontSize: '.8rem', textAlign: 'center', padding: '1.5rem 1rem', lineHeight: 1.6 }}>
+                    {inboxError}
+                  </p>
+                )}
+                {!inboxError && conversations.length === 0 && (
                   <p style={{ color: 'rgba(255,255,255,.3)', fontSize: '.85rem', textAlign: 'center', padding: '2rem 1rem' }}>
                     No conversations yet. Tap the pencil icon to message someone.
                   </p>
@@ -431,7 +455,7 @@ function MessagesInner() {
               <div style={{ padding: '1.1rem 1.5rem', borderBottom: '1px solid rgba(255,255,255,.06)', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <button
                   className="back-mobile"
-                  onClick={() => setActiveId(null)}
+                  onClick={() => { setActiveId(null); setFocusedThread(false) }}
                   style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: '4px' }}
                   aria-label="Back to conversations"
                 >
