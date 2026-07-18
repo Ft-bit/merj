@@ -1,8 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '../context/AuthContext'
+import { collection, query, where, onSnapshot } from 'firebase/firestore'
+import { db } from '../lib/firebase'
 import UsernameGate from './UsernameGate'
 
 const GREEN = '#00e676'
@@ -37,7 +39,7 @@ const navItems: NavItem[] = [
   { label: 'Home', path: '/dashboard', icon: <IconHome />, enabled: true },
   { label: 'Marketplace', path: '/listings', icon: <IconMarketplace />, enabled: false },
   { label: 'Messages', path: '/messages', icon: <IconMessages />, enabled: true },
-  { label: 'Notifications', path: '/notifications', icon: <IconBell />, enabled: false },
+  { label: 'Notifications', path: '/notifications', icon: <IconBell />, enabled: true },
   { label: 'Profile', path: '/profile', icon: <IconUser />, enabled: true },
 ]
 
@@ -46,6 +48,21 @@ export default function Sidebar() {
   const pathname = usePathname()
   const { user, logout } = useAuth()
   const [comingSoon, setComingSoon] = useState('')
+  const [unreadCount, setUnreadCount] = useState(0)
+
+  useEffect(() => {
+    if (!user) return
+    const q = query(
+      collection(db, 'notifications'),
+      where('userId', '==', user.uid),
+      where('read', '==', false)
+    )
+    const unsub = onSnapshot(q, snap => setUnreadCount(snap.size), () => {
+      // If this fails (e.g. missing index), just show no badge rather
+      // than breaking navigation.
+    })
+    return () => unsub()
+  }, [user])
 
   const showComingSoon = (label: string) => {
     setComingSoon(label)
@@ -129,6 +146,11 @@ export default function Sidebar() {
             >
               {item.icon}
               {item.label}
+              {item.label === 'Notifications' && unreadCount > 0 && (
+                <span style={{ marginLeft: 'auto', fontSize: '.7rem', fontWeight: '700', color: '#000', background: GREEN, minWidth: '18px', height: '18px', borderRadius: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px' }}>
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
               {!item.enabled && (
                 <span style={{ marginLeft: 'auto', fontSize: '.65rem', color: 'rgba(0,230,118,.6)', background: 'rgba(0,230,118,.08)', padding: '2px 7px', borderRadius: '100px', fontWeight: '600' }}>soon</span>
               )}
@@ -181,9 +203,18 @@ export default function Sidebar() {
           <IconHome />
           Home
         </button>
-        <button className="mnav-item" onClick={() => showComingSoon('Marketplace')}>
-          <IconMarketplace />
-          Market
+        <button
+          className={`mnav-item${pathname === '/notifications' ? ' active' : ''}`}
+          onClick={() => router.push('/notifications')}
+          style={{ position: 'relative' }}
+        >
+          <IconBell />
+          Alerts
+          {unreadCount > 0 && (
+            <span style={{ position: 'absolute', top: '-2px', right: '18%', fontSize: '.6rem', fontWeight: '700', color: '#000', background: GREEN, minWidth: '15px', height: '15px', borderRadius: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 3px' }}>
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
+          )}
         </button>
 
         <button className="mnav-plus" onClick={() => showComingSoon('Selling')} aria-label="List an asset">
