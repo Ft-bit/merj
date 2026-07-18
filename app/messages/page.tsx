@@ -69,6 +69,27 @@ function MessagesInner() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  const notifyRecipient = async (preview: string) => {
+    if (!user || !activeId) return
+    const conv = conversations.find(c => c.id === activeId)
+    const recipientUid = conv?.participants.find(p => p !== user.uid)
+    if (!recipientUid) return
+    try {
+      await addDoc(collection(db, 'notifications'), {
+        userId: recipientUid,
+        type: 'message',
+        title: user.displayName || 'New message',
+        body: preview,
+        link: `/messages?open=${activeId}`,
+        read: false,
+        createdAt: serverTimestamp(),
+      })
+    } catch {
+      // Notification failing to write should never block the message
+      // itself from sending — the chat still works either way.
+    }
+  }
+
   useEffect(() => {
     if (!loading && (!user || !user.emailVerified)) router.push('/login')
   }, [user, loading, router])
@@ -217,6 +238,7 @@ function MessagesInner() {
         lastMessage: messageText,
         lastMessageAt: serverTimestamp(),
       }, { merge: true })
+      notifyRecipient(messageText.slice(0, 80))
     } catch {
       setText(messageText)
       setError('Message failed to send. Please try again.')
@@ -258,6 +280,7 @@ function MessagesInner() {
         lastMessage: isImage ? '📷 Photo' : '🎥 Video',
         lastMessageAt: serverTimestamp(),
       }, { merge: true })
+      notifyRecipient(isImage ? '📷 Sent a photo' : '🎥 Sent a video')
     } catch {
       setError('Could not send that file. Please try again.')
     }
