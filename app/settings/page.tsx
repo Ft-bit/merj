@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../context/AuthContext'
-import { doc, getDoc, setDoc } from 'firebase/firestore'
+import { doc, getDoc, setDoc, collection, getDocs, addDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '../../lib/firebase'
 import Sidebar from '../../components/Sidebar'
 
@@ -52,6 +52,12 @@ export default function SettingsPage() {
   const [error, setError] = useState('')
   const [signingOut, setSigningOut] = useState(false)
 
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [announceTitle, setAnnounceTitle] = useState('')
+  const [announceBody, setAnnounceBody] = useState('')
+  const [sending, setSending] = useState(false)
+  const [sendResult, setSendResult] = useState('')
+
   useEffect(() => {
     if (!loading && !user) router.push('/login')
   }, [user, loading, router])
@@ -61,8 +67,11 @@ export default function SettingsPage() {
     ;(async () => {
       try {
         const snap = await getDoc(doc(db, 'users', user.uid))
-        if (snap.exists() && snap.data().preferences) {
-          setPrefs({ ...DEFAULT_PREFS, ...snap.data().preferences })
+        if (snap.exists()) {
+          if (snap.data().preferences) {
+            setPrefs({ ...DEFAULT_PREFS, ...snap.data().preferences })
+          }
+          setIsAdmin(snap.data().role === 'admin')
         }
       } catch {
         // Defaults stay in place if this fails — not worth blocking the page over.
@@ -84,6 +93,37 @@ export default function SettingsPage() {
       setError('Could not save that change. Please try again.')
     }
     setSavingKey(null)
+  }
+
+  const handleBroadcast = async () => {
+    if (!announceTitle.trim() || !announceBody.trim()) {
+      setSendResult('Add both a title and a message before sending.')
+      return
+    }
+    setSending(true)
+    setSendResult('')
+    try {
+      const usersSnap = await getDocs(collection(db, 'users'))
+      const recipients = usersSnap.docs.map(d => d.id)
+      await Promise.all(
+        recipients.map(uid =>
+          addDoc(collection(db, 'notifications'), {
+            userId: uid,
+            type: 'announcement',
+            title: announceTitle.trim(),
+            body: announceBody.trim(),
+            read: false,
+            createdAt: serverTimestamp(),
+          })
+        )
+      )
+      setSendResult(`Sent to ${recipients.length} user${recipients.length === 1 ? '' : 's'}.`)
+      setAnnounceTitle('')
+      setAnnounceBody('')
+    } catch {
+      setSendResult('Could not send the announcement. Please try again.')
+    }
+    setSending(false)
   }
 
   const handleSignOut = async () => {
@@ -221,6 +261,47 @@ export default function SettingsPage() {
             Merj uses a fixed dark theme with green accents — this isn't changeable, by design.
           </p>
         </div>
+
+        {isAdmin && (
+          <>
+            <p style={{ fontSize: '.72rem', fontWeight: '700', letterSpacing: '.06em', textTransform: 'uppercase', color: 'rgba(255,255,255,.28)', marginBottom: '.85rem' }}>
+              Admin
+            </p>
+            <div className="section-card" style={{ marginBottom: '2rem' }}>
+              <p style={{ fontSize: '.9rem', fontWeight: '600', marginBottom: '.3rem' }}>Send announcement to everyone</p>
+              <p style={{ fontSize: '.8rem', color: 'rgba(255,255,255,.4)', marginBottom: '1rem' }}>
+                Every registered user will get this as a notification.
+              </p>
+
+              <input
+                value={announceTitle}
+                onChange={e => setAnnounceTitle(e.target.value)}
+                placeholder="Title"
+                style={{ width: '100%', padding: '.75rem 1rem', background: 'rgba(255,255,255,.035)', border: '1px solid rgba(255,255,255,.09)', borderRadius: '10px', color: '#fff', fontSize: '.9rem', outline: 'none', fontFamily: 'inherit', marginBottom: '.75rem' }}
+              />
+              <textarea
+                value={announceBody}
+                onChange={e => setAnnounceBody(e.target.value)}
+                placeholder="What do you want to tell everyone?"
+                style={{ width: '100%', padding: '.75rem 1rem', background: 'rgba(255,255,255,.035)', border: '1px solid rgba(255,255,255,.09)', borderRadius: '10px', color: '#fff', fontSize: '.9rem', outline: 'none', fontFamily: 'inherit', minHeight: '90px', resize: 'vertical', marginBottom: '.75rem' }}
+              />
+
+              {sendResult && (
+                <p style={{ fontSize: '.82rem', color: sendResult.startsWith('Sent') ? GREEN : '#fca5a5', marginBottom: '.75rem' }}>
+                  {sendResult}
+                </p>
+              )}
+
+              <button
+                onClick={handleBroadcast}
+                disabled={sending}
+                style={{ padding: '.75rem 1.75rem', background: GREEN, color: '#000', border: 'none', borderRadius: '10px', fontWeight: '700', fontSize: '.88rem', cursor: 'pointer', fontFamily: 'inherit', opacity: sending ? .7 : 1 }}
+              >
+                {sending ? 'Sending...' : 'Send to everyone'}
+              </button>
+            </div>
+          </>
+        )}
 
         <button className="signout-btn" onClick={handleSignOut} disabled={signingOut}>
           {signingOut ? 'Signing out...' : 'Sign out'}
