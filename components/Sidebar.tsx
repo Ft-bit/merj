@@ -34,6 +34,9 @@ function IconBell() {
 function IconUser() {
   return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
 }
+function IconSettings() {
+  return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+}
 
 const navItems: NavItem[] = [
   { label: 'Home', path: '/dashboard', icon: <IconHome />, enabled: true },
@@ -41,6 +44,7 @@ const navItems: NavItem[] = [
   { label: 'Messages', path: '/messages', icon: <IconMessages />, enabled: true },
   { label: 'Notifications', path: '/notifications', icon: <IconBell />, enabled: true },
   { label: 'Profile', path: '/profile', icon: <IconUser />, enabled: true },
+  { label: 'Settings', path: '/settings', icon: <IconSettings />, enabled: true },
 ]
 
 export default function Sidebar() {
@@ -106,20 +110,21 @@ export default function Sidebar() {
             background:rgba(5,5,5,.92);backdrop-filter:blur(20px);
             border-top:1px solid rgba(255,255,255,.08);
             padding:.5rem .5rem calc(.5rem + env(safe-area-inset-bottom));
-            align-items:center;justify-content:space-around;
+            align-items:center;
           }
           .mnav-item{
             display:flex;flex-direction:column;align-items:center;gap:2px;
             background:none;border:none;color:rgba(255,255,255,.4);
-            font-size:.62rem;font-family:inherit;cursor:pointer;
-            padding:.3rem .5rem;flex:1;
+            font-size:.58rem;font-family:inherit;cursor:pointer;
+            padding:.3rem .3rem;flex:1;min-width:0;
           }
           .mnav-item.active{color:${GREEN}}
           .mnav-plus{
-            width:48px;height:48px;border-radius:50%;background:${GREEN};
+            width:50px;height:50px;border-radius:50%;background:${GREEN};
             display:flex;align-items:center;justify-content:center;color:#000;
-            border:none;cursor:pointer;margin-top:-20px;
-            box-shadow:0 4px 16px rgba(0,230,118,.4);flex-shrink:0;
+            border:none;cursor:pointer;flex-shrink:0;
+            box-shadow:0 4px 16px rgba(0,230,118,.4);
+            position:absolute;left:50%;top:-22px;transform:translateX(-50%);
           }
         }
       `}</style>
@@ -211,16 +216,11 @@ export default function Sidebar() {
           <IconBell />
           Alerts
           {unreadCount > 0 && (
-            <span style={{ position: 'absolute', top: '-2px', right: '18%', fontSize: '.6rem', fontWeight: '700', color: '#000', background: GREEN, minWidth: '15px', height: '15px', borderRadius: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 3px' }}>
+            <span style={{ position: 'absolute', top: '-2px', right: '22%', fontSize: '.6rem', fontWeight: '700', color: '#000', background: GREEN, minWidth: '15px', height: '15px', borderRadius: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 3px' }}>
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
         </button>
-
-        <button className="mnav-plus" onClick={() => showComingSoon('Selling')} aria-label="List an asset">
-          <IconSell />
-        </button>
-
         <button
           className={`mnav-item${pathname === '/messages' ? ' active' : ''}`}
           onClick={() => router.push('/messages')}
@@ -234,6 +234,17 @@ export default function Sidebar() {
         >
           <IconUser />
           Profile
+        </button>
+        <button
+          className={`mnav-item${pathname === '/settings' ? ' active' : ''}`}
+          onClick={() => router.push('/settings')}
+        >
+          <IconSettings />
+          Settings
+        </button>
+
+        <button className="mnav-plus" onClick={() => showComingSoon('Selling')} aria-label="List an asset">
+          <IconSell />
         </button>
 
         {comingSoon && (
