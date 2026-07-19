@@ -165,7 +165,7 @@ export default function Sidebar() {
         </div>
         <button
           onClick={() => setDrawerOpen(true)}
-          style={{ width: '34px', height: '34px', borderRadius: '50%', background: 'rgba(0,230,118,.15)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '.8rem', fontWeight: '700', color: GREEN, overflow: 'hidden', cursor: 'pointer' }}
+          style={{ width: '34px', height: '34px', minWidth: '34px', minHeight: '34px', flexShrink: 0, borderRadius: '50%', background: 'rgba(0,230,118,.15)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '.8rem', fontWeight: '700', color: GREEN, overflow: 'hidden', cursor: 'pointer' }}
           aria-label="Open menu"
         >
           {user?.photoURL ? (
@@ -366,13 +366,6 @@ export default function Sidebar() {
         >
           <IconUser />
           Profile
-        </button>
-        <button
-          className={`mnav-item${pathname === '/settings' ? ' active' : ''}`}
-          onClick={() => router.push('/settings')}
-        >
-          <IconSettings />
-          Settings
         </button>
 
         <button className="mnav-plus" onClick={() => showComingSoon('Selling')} aria-label="List an asset">
