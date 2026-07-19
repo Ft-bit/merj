@@ -37,6 +37,9 @@ function IconUser() {
 function IconSettings() {
   return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
 }
+function IconClose() {
+  return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3"><path d="M18 6L6 18M6 6l12 12"/></svg>
+}
 
 const navItems: NavItem[] = [
   { label: 'Home', path: '/dashboard', icon: <IconHome />, enabled: true },
@@ -53,6 +56,7 @@ export default function Sidebar() {
   const { user, logout } = useAuth()
   const [comingSoon, setComingSoon] = useState('')
   const [unreadCount, setUnreadCount] = useState(0)
+  const [drawerOpen, setDrawerOpen] = useState(false)
 
   useEffect(() => {
     if (!user) return
@@ -61,10 +65,7 @@ export default function Sidebar() {
       where('userId', '==', user.uid),
       where('read', '==', false)
     )
-    const unsub = onSnapshot(q, snap => setUnreadCount(snap.size), () => {
-      // If this fails (e.g. missing index), just show no badge rather
-      // than breaking navigation.
-    })
+    const unsub = onSnapshot(q, snap => setUnreadCount(snap.size), () => {})
     return () => unsub()
   }, [user])
 
@@ -73,11 +74,12 @@ export default function Sidebar() {
     setTimeout(() => setComingSoon(''), 2000)
   }
 
-  const handleNav = (item: NavItem) => {
+  const handleNav = (item: NavItem, closeDrawer?: boolean) => {
     if (!item.enabled) {
       showComingSoon(item.label)
       return
     }
+    if (closeDrawer) setDrawerOpen(false)
     router.push(item.path)
   }
 
@@ -86,24 +88,37 @@ export default function Sidebar() {
       <UsernameGate />
       <style>{`
         .sb-item{
-          display:flex;align-items:center;gap:14px;padding:.75rem 1rem;
+          display:flex;align-items:center;gap:14px;padding:.8rem 1rem;
           border-radius:100px;cursor:pointer;transition:background .15s;
-          color:rgba(255,255,255,.75);font-size:.95rem;font-weight:500;
+          color:rgba(255,255,255,.75);font-size:.97rem;font-weight:500;
           width:100%;background:none;border:none;font-family:inherit;text-align:left;
         }
         .sb-item:hover{background:rgba(255,255,255,.06)}
-        .sb-item.active{color:#fff;font-weight:700}
+        .sb-item.active{color:#fff;font-weight:700;background:rgba(0,230,118,.06)}
         .sb-list-btn{
-          width:100%;padding:.85rem;background:${GREEN};color:#000;border:none;
+          width:100%;padding:.9rem;background:${GREEN};color:#000;border:none;
           border-radius:100px;font-weight:700;font-size:.95rem;cursor:pointer;
-          font-family:inherit;transition:background .2s;margin-top:.5rem;
+          font-family:inherit;transition:background .2s;
         }
         .sb-list-btn:hover{background:#00c853}
+        .sb-divider{ height:1px; background:rgba(255,255,255,.07); margin:1rem 0; }
 
         .mobile-nav{ display:none }
+        .mobile-topbar{ display:none }
+        .drawer-overlay{ display:none }
 
         @media(max-width:900px){
           .app-sidebar{display:none!important}
+
+          .mobile-topbar{
+            display:flex!important;
+            position:fixed;top:0;left:0;right:0;z-index:150;
+            align-items:center;justify-content:space-between;
+            padding:.85rem 1.1rem;
+            background:rgba(5,5,5,.85);backdrop-filter:blur(16px);
+            border-bottom:1px solid rgba(255,255,255,.06);
+          }
+
           .mobile-nav{
             display:flex!important;
             position:fixed;bottom:0;left:0;right:0;z-index:200;
@@ -126,23 +141,133 @@ export default function Sidebar() {
             box-shadow:0 4px 16px rgba(0,230,118,.4);
             position:absolute;left:50%;top:-22px;transform:translateX(-50%);
           }
+
+          .drawer-overlay{
+            display:block;position:fixed;inset:0;z-index:300;
+            background:rgba(0,0,0,.6);backdrop-filter:blur(2px);
+          }
+          .drawer-panel{
+            position:fixed;top:0;left:0;bottom:0;z-index:301;
+            width:82%;max-width:320px;background:#0a0a0a;
+            border-right:1px solid rgba(255,255,255,.08);
+            padding:1.5rem 1rem;display:flex;flex-direction:column;
+            animation:drawerIn .25s cubic-bezier(.22,1,.36,1);
+            overflow-y:auto;
+          }
+          @keyframes drawerIn{from{transform:translateX(-100%)}to{transform:translateX(0)}}
         }
       `}</style>
 
+      <div className="mobile-topbar">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }} onClick={() => router.push('/dashboard')}>
+          <div style={{ width: '26px', height: '26px', background: GREEN, borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900', fontSize: '13px', color: '#000' }}>M</div>
+          <span style={{ fontWeight: '800', fontSize: '1.02rem', color: '#fff', letterSpacing: '-.02em' }}>Merj</span>
+        </div>
+        <button
+          onClick={() => setDrawerOpen(true)}
+          style={{ width: '34px', height: '34px', borderRadius: '50%', background: 'rgba(0,230,118,.15)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '.8rem', fontWeight: '700', color: GREEN, overflow: 'hidden', cursor: 'pointer' }}
+          aria-label="Open menu"
+        >
+          {user?.photoURL ? (
+            <img src={user.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : (
+            (user?.displayName || user?.email || 'U')[0].toUpperCase()
+          )}
+        </button>
+      </div>
+
+      {drawerOpen && (
+        <>
+          <div className="drawer-overlay" onClick={() => setDrawerOpen(false)} />
+          <div className="drawer-panel">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
+                <div style={{ width: '26px', height: '26px', background: GREEN, borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900', fontSize: '13px', color: '#000' }}>M</div>
+                <span style={{ fontWeight: '800', fontSize: '1.05rem', color: '#fff', letterSpacing: '-.02em' }}>Merj</span>
+              </div>
+              <button onClick={() => setDrawerOpen(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,.6)', cursor: 'pointer', padding: '4px' }} aria-label="Close menu">
+                <IconClose />
+              </button>
+            </div>
+
+            <div
+              onClick={() => { setDrawerOpen(false); router.push('/profile') }}
+              style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '.75rem', borderRadius: '14px', cursor: 'pointer', marginBottom: '.5rem' }}
+            >
+              <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(0,230,118,.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', fontWeight: '700', color: GREEN, overflow: 'hidden', flexShrink: 0 }}>
+                {user?.photoURL ? (
+                  <img src={user.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  (user?.displayName || user?.email || 'U')[0].toUpperCase()
+                )}
+              </div>
+              <div style={{ overflow: 'hidden' }}>
+                <p style={{ fontSize: '.95rem', fontWeight: '700', color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {user?.displayName || 'User'}
+                </p>
+                <p style={{ fontSize: '.78rem', color: 'rgba(255,255,255,.4)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {user?.email}
+                </p>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '1.25rem', padding: '.5rem .75rem 1rem' }}>
+              <span style={{ fontSize: '.8rem', color: 'rgba(255,255,255,.5)' }}><strong style={{ color: '#fff' }}>0</strong> Listings</span>
+              <span style={{ fontSize: '.8rem', color: 'rgba(255,255,255,.5)' }}><strong style={{ color: '#fff' }}>0</strong> Sold</span>
+            </div>
+
+            <div className="sb-divider" />
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1 }}>
+              {navItems.map(item => (
+                <button
+                  key={item.label}
+                  className={`sb-item${pathname === item.path ? ' active' : ''}`}
+                  onClick={() => handleNav(item, true)}
+                >
+                  {item.icon}
+                  {item.label}
+                  {item.label === 'Notifications' && unreadCount > 0 && (
+                    <span style={{ marginLeft: 'auto', fontSize: '.7rem', fontWeight: '700', color: '#000', background: GREEN, minWidth: '18px', height: '18px', borderRadius: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 5px' }}>
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                  {!item.enabled && (
+                    <span style={{ marginLeft: 'auto', fontSize: '.65rem', color: 'rgba(0,230,118,.6)', background: 'rgba(0,230,118,.08)', padding: '2px 7px', borderRadius: '100px', fontWeight: '600' }}>soon</span>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            <div className="sb-divider" />
+
+            <button className="sb-list-btn" onClick={() => { setDrawerOpen(false); showComingSoon('Selling') }} style={{ marginBottom: '.75rem' }}>
+              List an asset
+            </button>
+            <button
+              onClick={async () => { setDrawerOpen(false); await logout(); router.push('/login') }}
+              style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,.35)', fontSize: '.85rem', cursor: 'pointer', fontFamily: 'inherit', padding: '.6rem 1rem', textAlign: 'left' }}
+            >
+              Sign out
+            </button>
+          </div>
+        </>
+      )}
+
       <nav className="app-sidebar" style={{
-        width: '250px', flexShrink: 0, position: 'sticky', top: 0,
+        width: '260px', flexShrink: 0, position: 'sticky', top: 0,
         height: '100vh', display: 'flex', flexDirection: 'column',
-        padding: '1.25rem .75rem', borderRight: '1px solid rgba(255,255,255,.06)',
+        padding: '1.5rem 1rem', borderRight: '1px solid rgba(255,255,255,.06)',
       }}>
         <div
-          style={{ display: 'flex', alignItems: 'center', gap: '9px', padding: '.5rem 1rem 1.5rem', cursor: 'pointer' }}
+          style={{ display: 'flex', alignItems: 'center', gap: '9px', padding: '.5rem 1rem 1.75rem', cursor: 'pointer' }}
           onClick={() => router.push('/')}
         >
-          <div style={{ width: '28px', height: '28px', background: GREEN, borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900', fontSize: '14px', color: '#000' }}>M</div>
-          <span style={{ fontWeight: '800', fontSize: '1.1rem', color: '#fff', letterSpacing: '-.03em' }}>Merj</span>
+          <div style={{ width: '30px', height: '30px', background: GREEN, borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900', fontSize: '15px', color: '#000' }}>M</div>
+          <span style={{ fontWeight: '800', fontSize: '1.2rem', color: '#fff', letterSpacing: '-.03em' }}>Merj</span>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', flex: 1 }}>
           {navItems.map(item => (
             <button
               key={item.label}
@@ -162,6 +287,8 @@ export default function Sidebar() {
             </button>
           ))}
 
+          <div className="sb-divider" />
+
           <button className="sb-list-btn" onClick={() => showComingSoon('Selling')}>
             List an asset
           </button>
@@ -173,11 +300,13 @@ export default function Sidebar() {
           )}
         </div>
 
-        <button className="sb-item" onClick={() => router.push('/profile')} style={{ marginTop: 'auto' }}>
+        <div className="sb-divider" />
+
+        <button className="sb-item" onClick={() => router.push('/profile')} style={{ padding: '.6rem 1rem' }}>
           <div style={{
-            width: '32px', height: '32px', borderRadius: '50%', flexShrink: 0,
+            width: '38px', height: '38px', borderRadius: '50%', flexShrink: 0,
             background: 'rgba(0,230,118,.15)', display: 'flex', alignItems: 'center',
-            justifyContent: 'center', fontSize: '.85rem', fontWeight: '700', color: GREEN,
+            justifyContent: 'center', fontSize: '.9rem', fontWeight: '700', color: GREEN,
             overflow: 'hidden',
           }}>
             {user?.photoURL ? (
@@ -187,14 +316,17 @@ export default function Sidebar() {
             )}
           </div>
           <div style={{ overflow: 'hidden' }}>
-            <p style={{ fontSize: '.85rem', fontWeight: '600', color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <p style={{ fontSize: '.88rem', fontWeight: '700', color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {user?.displayName || 'User'}
+            </p>
+            <p style={{ fontSize: '.74rem', color: 'rgba(255,255,255,.35)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              0 Listings · 0 Sold
             </p>
           </div>
         </button>
         <button
           onClick={async () => { await logout(); router.push('/login') }}
-          style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,.3)', fontSize: '.78rem', cursor: 'pointer', fontFamily: 'inherit', padding: '.4rem 1rem', textAlign: 'left' }}
+          style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,.3)', fontSize: '.8rem', cursor: 'pointer', fontFamily: 'inherit', padding: '.6rem 1rem', textAlign: 'left' }}
         >
           Sign out
         </button>
