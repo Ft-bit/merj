@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '../context/AuthContext'
-import { collection, query, where, onSnapshot } from 'firebase/firestore'
+import { collection, query, where, onSnapshot, doc } from 'firebase/firestore'
 import { db } from '../lib/firebase'
 import UsernameGate from './UsernameGate'
 
@@ -56,6 +56,7 @@ export default function Sidebar() {
   const { user, logout } = useAuth()
   const [comingSoon, setComingSoon] = useState('')
   const [unreadCount, setUnreadCount] = useState(0)
+  const [selfInfo, setSelfInfo] = useState({ name: '', photo: '' })
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   useEffect(() => {
@@ -66,6 +67,20 @@ export default function Sidebar() {
       where('read', '==', false)
     )
     const unsub = onSnapshot(q, snap => setUnreadCount(snap.size), () => {})
+    return () => unsub()
+  }, [user])
+
+  useEffect(() => {
+    if (!user) return
+    const unsub = onSnapshot(doc(db, 'users', user.uid), snap => {
+      if (snap.exists()) {
+        const d = snap.data()
+        setSelfInfo({
+          name: d.name || user.displayName || 'User',
+          photo: d.photo || user.photoURL || '',
+        })
+      }
+    })
     return () => unsub()
   }, [user])
 
@@ -168,10 +183,10 @@ export default function Sidebar() {
           style={{ width: '34px', height: '34px', minWidth: '34px', minHeight: '34px', flexShrink: 0, borderRadius: '50%', background: 'rgba(0,230,118,.15)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '.8rem', fontWeight: '700', color: GREEN, overflow: 'hidden', cursor: 'pointer' }}
           aria-label="Open menu"
         >
-          {user?.photoURL ? (
-            <img src={user.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          {selfInfo.photo ? (
+            <img src={selfInfo.photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           ) : (
-            (user?.displayName || user?.email || 'U')[0].toUpperCase()
+            (selfInfo.name || user?.email || 'U')[0].toUpperCase()
           )}
         </button>
       </div>
@@ -195,15 +210,15 @@ export default function Sidebar() {
               style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '.75rem', borderRadius: '14px', cursor: 'pointer', marginBottom: '.5rem' }}
             >
               <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(0,230,118,.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', fontWeight: '700', color: GREEN, overflow: 'hidden', flexShrink: 0 }}>
-                {user?.photoURL ? (
-                  <img src={user.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                {selfInfo.photo ? (
+                  <img src={selfInfo.photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
-                  (user?.displayName || user?.email || 'U')[0].toUpperCase()
+                  (selfInfo.name || user?.email || 'U')[0].toUpperCase()
                 )}
               </div>
               <div style={{ overflow: 'hidden' }}>
                 <p style={{ fontSize: '.95rem', fontWeight: '700', color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {user?.displayName || 'User'}
+                  {selfInfo.name || 'User'}
                 </p>
                 <p style={{ fontSize: '.78rem', color: 'rgba(255,255,255,.4)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {user?.email}
@@ -309,15 +324,15 @@ export default function Sidebar() {
             justifyContent: 'center', fontSize: '.9rem', fontWeight: '700', color: GREEN,
             overflow: 'hidden',
           }}>
-            {user?.photoURL ? (
-              <img src={user.photoURL} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            {selfInfo.photo ? (
+              <img src={selfInfo.photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
-              (user?.displayName || user?.email || 'U')[0].toUpperCase()
+              (selfInfo.name || user?.email || 'U')[0].toUpperCase()
             )}
           </div>
           <div style={{ overflow: 'hidden' }}>
             <p style={{ fontSize: '.88rem', fontWeight: '700', color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {user?.displayName || 'User'}
+              {selfInfo.name || 'User'}
             </p>
             <p style={{ fontSize: '.74rem', color: 'rgba(255,255,255,.35)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               0 Listings · 0 Sold
