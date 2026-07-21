@@ -247,7 +247,7 @@ export default function ProfilePage() {
         .signout-btn:hover{background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.3)}
         .signout-btn:disabled{opacity:.6;cursor:not-allowed}
 
-        @media(max-width:900px){ .app-sidebar{display:none!important} }
+        @media(max-width:900px){ .app-sidebar{display:none!important} .profile-main{padding-top:3.5rem!important} }
         @media(max-width:700px){ .profile-main{ padding-bottom:5.5rem!important } }
       `}</style>
 
@@ -434,12 +434,12 @@ export default function ProfilePage() {
               Account
             </p>
             <div className="section-card">
-              <div className="settings-row">
+              <div className="settings-row" onClick={() => router.push('/settings')} style={{ cursor: 'pointer' }}>
                 <div>
-                  <p style={{ fontSize: '.9rem', fontWeight: '600' }}>Appearance & preferences</p>
-                  <p style={{ fontSize: '.8rem', color: 'rgba(255,255,255,.35)', marginTop: '2px' }}>Coming soon</p>
+                  <p style={{ fontSize: '.9rem', fontWeight: '600' }}>Settings</p>
+                  <p style={{ fontSize: '.8rem', color: 'rgba(255,255,255,.35)', marginTop: '2px' }}>Notifications, appearance, account</p>
                 </div>
-                <span style={{ fontSize: '.65rem', color: 'rgba(0,230,118,.6)', background: 'rgba(0,230,118,.08)', padding: '3px 9px', borderRadius: '100px', fontWeight: '600' }}>soon</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg>
               </div>
               <div className="settings-row">
                 <div>
