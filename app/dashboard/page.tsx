@@ -45,7 +45,7 @@ export default function DashboardPage() {
           background:#0a0a0a;border:1px solid rgba(255,255,255,.07);border-radius:14px;
           padding:1.25rem;
         }
-        @media(max-width:900px){ .right-rail{display:none!important} }
+        @media(max-width:900px){ .right-rail{display:none!important} .feed-main{padding-top:4.5rem!important} }
         @media(max-width:600px){ .feed-main{padding:1rem!important} }
       `}</style>
 
