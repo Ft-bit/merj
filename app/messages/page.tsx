@@ -353,7 +353,7 @@ function MessagesInner() {
 
         .back-mobile{ display:none }
 
-        @media(max-width:900px){ .app-sidebar{display:none!important} }
+        @media(max-width:900px){ .app-sidebar{display:none!important} .msg-shell{padding-top:3.5rem!important;height:calc(100vh - 3.5rem)!important} }
 
         @media(max-width:700px){
           .msg-shell[data-thread-open="true"] .conv-list{display:none}
