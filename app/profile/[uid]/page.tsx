@@ -32,6 +32,7 @@ export default function PublicProfilePage() {
   const [fetching, setFetching] = useState(true)
   const [notFound, setNotFound] = useState(false)
   const [messaging, setMessaging] = useState(false)
+  const [messageError, setMessageError] = useState('')
 
   useEffect(() => {
     if (!loading && !user) router.push('/login')
@@ -65,28 +66,46 @@ export default function PublicProfilePage() {
   const handleMessage = async () => {
     if (!user || !profile) return
     setMessaging(true)
+    setMessageError('')
+
+    const timeout = new Promise<never>((_, reject) =>
+      setTimeout(() => reject({ code: 'timeout' }), 10000)
+    )
+
     try {
-      const convId = conversationId(user.uid, uid)
-      const convRef = doc(db, 'conversations', convId)
-      const convSnap = await getDoc(convRef)
+      await Promise.race([
+        (async () => {
+          const convId = conversationId(user.uid, uid)
+          const convRef = doc(db, 'conversations', convId)
+          const convSnap = await getDoc(convRef)
 
-      if (!convSnap.exists()) {
-        const meSnap = await getDoc(doc(db, 'users', user.uid))
-        const meData = meSnap.exists() ? meSnap.data() : {}
+          if (!convSnap.exists()) {
+            const meSnap = await getDoc(doc(db, 'users', user.uid))
+            const meData = meSnap.exists() ? meSnap.data() : {}
 
-        await setDoc(convRef, {
-          participants: [user.uid, uid],
-          participantInfo: {
-            [user.uid]: { name: meData?.name || user.displayName || 'User', photo: meData?.photo || user.photoURL || '' },
-            [uid]: { name: profile.name || 'User', photo: profile.photo || '' },
-          },
-          lastMessage: '',
-          lastMessageAt: serverTimestamp(),
-        })
+            await setDoc(convRef, {
+              participants: [user.uid, uid],
+              participantInfo: {
+                [user.uid]: { name: meData?.name || user.displayName || 'User', photo: meData?.photo || user.photoURL || '' },
+                [uid]: { name: profile.name || 'User', photo: profile.photo || '' },
+              },
+              lastMessage: '',
+              lastMessageAt: serverTimestamp(),
+            })
+          }
+
+          router.push(`/messages?open=${convId}`)
+        })(),
+        timeout,
+      ])
+    } catch (e: any) {
+      if (e?.code === 'timeout') {
+        setMessageError('This is taking too long. Check your connection and try again.')
+      } else if (e?.code === 'permission-denied') {
+        setMessageError('Could not start conversation — permission denied. Check Firestore rules.')
+      } else {
+        setMessageError('Could not start conversation. Please try again.')
       }
-
-      router.push(`/messages?open=${convId}`)
-    } catch {
       setMessaging(false)
     }
   }
@@ -129,12 +148,12 @@ export default function PublicProfilePage() {
         *{box-sizing:border-box}
         @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
         @keyframes spin{to{transform:rotate(360deg)}}
-        @media(max-width:900px){ .app-sidebar{display:none!important} }
+        @media(max-width:900px){ .app-sidebar{display:none!important} .pubprofile-main{padding-top:3.5rem!important} }
       `}</style>
 
       <Sidebar />
 
-      <main style={{ flex: 1, maxWidth: '760px', margin: '0 auto', paddingBottom: '4rem' }}>
+      <main className="pubprofile-main" style={{ flex: 1, maxWidth: '760px', margin: '0 auto', paddingBottom: '4rem' }}>
         <div style={{
           marginTop: '1.5rem', marginLeft: '1.5rem', marginRight: '1.5rem',
           height: '220px', position: 'relative',
@@ -187,6 +206,10 @@ export default function PublicProfilePage() {
               {messaging ? 'Opening...' : 'Message'}
             </button>
           </div>
+
+          {messageError && (
+            <p style={{ color: '#fca5a5', fontSize: '.83rem', marginTop: '.75rem' }}>{messageError}</p>
+          )}
 
           {profile?.bio && (
             <p style={{ color: 'rgba(255,255,255,.62)', fontSize: '.94rem', lineHeight: 1.75, marginTop: '1.25rem', maxWidth: '520px' }}>
