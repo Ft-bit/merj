@@ -107,13 +107,14 @@ export default function Sidebar() {
           border-radius:100px;cursor:pointer;transition:background .15s;
           color:rgba(255,255,255,.75);font-size:.97rem;font-weight:500;
           width:100%;background:none;border:none;font-family:inherit;text-align:left;
+          box-sizing:border-box;
         }
         .sb-item:hover{background:rgba(255,255,255,.06)}
         .sb-item.active{color:#fff;font-weight:700;background:rgba(0,230,118,.06)}
         .sb-list-btn{
           width:100%;padding:.9rem;background:${GREEN};color:#000;border:none;
           border-radius:100px;font-weight:700;font-size:.95rem;cursor:pointer;
-          font-family:inherit;transition:background .2s;
+          font-family:inherit;transition:background .2s;box-sizing:border-box;
         }
         .sb-list-btn:hover{background:#00c853}
         .sb-divider{ height:1px; background:rgba(255,255,255,.07); margin:1rem 0; }
@@ -143,18 +144,20 @@ export default function Sidebar() {
             align-items:center;
           }
           .mnav-item{
-            display:flex;flex-direction:column;align-items:center;gap:2px;
+            display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
             background:none;border:none;color:rgba(255,255,255,.4);
             font-size:.58rem;font-family:inherit;cursor:pointer;
-            padding:.3rem .3rem;flex:1;min-width:0;
+            padding:.3rem .3rem;flex:1;min-width:0;min-height:44px;
+            box-sizing:border-box;
           }
           .mnav-item.active{color:${GREEN}}
           .mnav-plus{
             width:50px;height:50px;border-radius:50%;background:${GREEN};
             display:flex;align-items:center;justify-content:center;color:#000;
-            border:none;cursor:pointer;flex-shrink:0;
+            border:none;cursor:pointer;flex-shrink:0;padding:0;
             box-shadow:0 4px 16px rgba(0,230,118,.4);
             position:absolute;left:50%;top:-22px;transform:translateX(-50%);
+            box-sizing:border-box;
           }
 
           .drawer-overlay{
@@ -167,10 +170,19 @@ export default function Sidebar() {
             border-right:1px solid rgba(255,255,255,.08);
             padding:1.5rem 1rem;display:flex;flex-direction:column;
             animation:drawerIn .25s cubic-bezier(.22,1,.36,1);
-            overflow-y:auto;
+            scrollbar-width:none;-ms-overflow-style:none;
+            overflow-y:auto;box-sizing:border-box;
           }
+          .drawer-panel::-webkit-scrollbar{ display:none; }
           @keyframes drawerIn{from{transform:translateX(-100%)}to{transform:translateX(0)}}
         }
+
+        .avatar-btn{
+          border:0;padding:0;box-sizing:border-box;
+          display:flex;align-items:center;justify-content:center;
+          overflow:hidden;cursor:pointer;flex-shrink:0;
+        }
+        .avatar-btn img{ display:block; }
       `}</style>
 
       <div className="mobile-topbar">
@@ -179,8 +191,9 @@ export default function Sidebar() {
           <span style={{ fontWeight: '800', fontSize: '1.02rem', color: '#fff', letterSpacing: '-.02em' }}>Merj</span>
         </div>
         <button
+          className="avatar-btn"
           onClick={() => setDrawerOpen(true)}
-          style={{ width: '34px', height: '34px', minWidth: '34px', minHeight: '34px', flexShrink: 0, borderRadius: '50%', background: 'rgba(0,230,118,.15)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '.8rem', fontWeight: '700', color: GREEN, overflow: 'hidden', cursor: 'pointer' }}
+          style={{ width: '36px', height: '36px', minWidth: '36px', minHeight: '36px', borderRadius: '50%', background: 'rgba(0,230,118,.15)', fontSize: '.8rem', fontWeight: '700', color: GREEN }}
           aria-label="Open menu"
         >
           {selfInfo.photo ? (
@@ -200,7 +213,7 @@ export default function Sidebar() {
                 <div style={{ width: '26px', height: '26px', background: GREEN, borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900', fontSize: '13px', color: '#000' }}>M</div>
                 <span style={{ fontWeight: '800', fontSize: '1.05rem', color: '#fff', letterSpacing: '-.02em' }}>Merj</span>
               </div>
-              <button onClick={() => setDrawerOpen(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,.6)', cursor: 'pointer', padding: '4px' }} aria-label="Close menu">
+              <button onClick={() => setDrawerOpen(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,.6)', cursor: 'pointer', padding: '4px', minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} aria-label="Close menu">
                 <IconClose />
               </button>
             </div>
@@ -209,13 +222,13 @@ export default function Sidebar() {
               onClick={() => { setDrawerOpen(false); router.push('/profile') }}
               style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '.75rem', borderRadius: '14px', cursor: 'pointer', marginBottom: '.5rem' }}
             >
-              <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(0,230,118,.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', fontWeight: '700', color: GREEN, overflow: 'hidden', flexShrink: 0 }}>
+              <button className="avatar-btn" style={{ width: '48px', height: '48px', minWidth: '48px', borderRadius: '50%', background: 'rgba(0,230,118,.15)', fontSize: '1.1rem', fontWeight: '700', color: GREEN }}>
                 {selfInfo.photo ? (
                   <img src={selfInfo.photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
                   (selfInfo.name || user?.email || 'U')[0].toUpperCase()
                 )}
-              </div>
+              </button>
               <div style={{ overflow: 'hidden' }}>
                 <p style={{ fontSize: '.95rem', fontWeight: '700', color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {selfInfo.name || 'User'}
@@ -239,6 +252,7 @@ export default function Sidebar() {
                   key={item.label}
                   className={`sb-item${pathname === item.path ? ' active' : ''}`}
                   onClick={() => handleNav(item, true)}
+                  style={{ minHeight: '44px' }}
                 >
                   {item.icon}
                   {item.label}
@@ -256,12 +270,12 @@ export default function Sidebar() {
 
             <div className="sb-divider" />
 
-            <button className="sb-list-btn" onClick={() => { setDrawerOpen(false); showComingSoon('Selling') }} style={{ marginBottom: '.75rem' }}>
+            <button className="sb-list-btn" onClick={() => { setDrawerOpen(false); showComingSoon('Selling') }} style={{ marginBottom: '.75rem', minHeight: '44px' }}>
               List an asset
             </button>
             <button
               onClick={async () => { setDrawerOpen(false); await logout(); router.push('/login') }}
-              style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,.35)', fontSize: '.85rem', cursor: 'pointer', fontFamily: 'inherit', padding: '.6rem 1rem', textAlign: 'left' }}
+              style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,.35)', fontSize: '.85rem', cursor: 'pointer', fontFamily: 'inherit', padding: '.6rem 1rem', textAlign: 'left', minHeight: '44px' }}
             >
               Sign out
             </button>
@@ -271,7 +285,7 @@ export default function Sidebar() {
 
       <nav className="app-sidebar" style={{
         width: '260px', flexShrink: 0, position: 'sticky', top: 0,
-        height: '100vh', display: 'flex', flexDirection: 'column',
+        height: '100dvh', display: 'flex', flexDirection: 'column',
         padding: '1.5rem 1rem', borderRight: '1px solid rgba(255,255,255,.06)',
       }}>
         <div
@@ -317,12 +331,10 @@ export default function Sidebar() {
 
         <div className="sb-divider" />
 
-        <button className="sb-item" onClick={() => router.push('/profile')} style={{ padding: '.6rem 1rem' }}>
-          <div style={{
-            width: '38px', height: '38px', borderRadius: '50%', flexShrink: 0,
-            background: 'rgba(0,230,118,.15)', display: 'flex', alignItems: 'center',
-            justifyContent: 'center', fontSize: '.9rem', fontWeight: '700', color: GREEN,
-            overflow: 'hidden',
+        <div className="sb-item" onClick={() => router.push('/profile')} style={{ padding: '.6rem 1rem', cursor: 'pointer' }}>
+          <div className="avatar-btn" style={{
+            width: '38px', height: '38px', minWidth: '38px', borderRadius: '50%',
+            background: 'rgba(0,230,118,.15)', fontSize: '.9rem', fontWeight: '700', color: GREEN,
           }}>
             {selfInfo.photo ? (
               <img src={selfInfo.photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -338,7 +350,7 @@ export default function Sidebar() {
               0 Listings · 0 Sold
             </p>
           </div>
-        </button>
+        </div>
         <button
           onClick={async () => { await logout(); router.push('/login') }}
           style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,.3)', fontSize: '.8rem', cursor: 'pointer', fontFamily: 'inherit', padding: '.6rem 1rem', textAlign: 'left' }}
