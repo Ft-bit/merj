@@ -153,7 +153,7 @@ export default function ProfilePage() {
 
   if (loading || fetching) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000' }}>
+      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000' }}>
         <div style={{ width: '40px', height: '40px', border: `2px solid rgba(0,230,118,.2)`, borderTop: `2px solid ${GREEN}`, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
         <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       </div>
@@ -164,7 +164,7 @@ export default function ProfilePage() {
 
   if (fetchError) {
     return (
-      <div style={{ minHeight: '100vh', background: '#000', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', padding: '2rem' }}>
+      <div style={{ minHeight: '100dvh', background: '#000', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', padding: '2rem' }}>
         <div style={{ textAlign: 'center', maxWidth: '360px' }}>
           <p style={{ color: '#fca5a5', fontSize: '.9rem', marginBottom: '1.25rem' }}>{fetchError}</p>
           <button
@@ -183,7 +183,7 @@ export default function ProfilePage() {
     : null
 
   return (
-    <div style={{ minHeight: '100vh', background: '#000', color: '#fff', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', display: 'flex' }}>
+    <div style={{ minHeight: '100dvh', background: '#000', color: '#fff', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', display: 'flex' }}>
       <style>{`
         *{box-sizing:border-box}
         @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
@@ -194,7 +194,7 @@ export default function ProfilePage() {
           border:1px solid rgba(255,255,255,.16);border-radius:8px;
           cursor:pointer;font-size:.78rem;font-family:inherit;
           display:flex;align-items:center;gap:6px;transition:all .2s;
-          backdrop-filter:blur(10px);
+          backdrop-filter:blur(10px);min-height:44px;
         }
         .cover-upload-btn:hover, .avatar-upload-btn:hover{background:rgba(0,0,0,.85)}
 
@@ -202,7 +202,7 @@ export default function ProfilePage() {
           width:100%;padding:.85rem 1rem;background:rgba(255,255,255,.035);
           border:1px solid rgba(255,255,255,.09);border-radius:10px;
           color:#fff;font-size:.94rem;outline:none;font-family:inherit;
-          transition:border-color .2s;
+          transition:border-color .2s;min-height:44px;
         }
         .field-input:focus{border-color:${GREEN}66}
         .field-input::placeholder{color:rgba(255,255,255,.2)}
@@ -211,7 +211,7 @@ export default function ProfilePage() {
         .btn-green{
           padding:.8rem 1.85rem;background:${GREEN};color:#000;border:none;
           border-radius:10px;font-weight:700;font-size:.9rem;cursor:pointer;
-          font-family:inherit;transition:background .2s;
+          font-family:inherit;transition:background .2s;min-height:44px;
         }
         .btn-green:hover:not(:disabled){background:#00c853}
         .btn-green:disabled{opacity:.6;cursor:not-allowed}
@@ -219,7 +219,7 @@ export default function ProfilePage() {
         .btn-ghost{
           padding:.8rem 1.85rem;background:rgba(255,255,255,.04);color:rgba(255,255,255,.7);
           border:1px solid rgba(255,255,255,.12);border-radius:10px;font-weight:600;
-          font-size:.9rem;cursor:pointer;font-family:inherit;transition:all .2s;
+          font-size:.9rem;cursor:pointer;font-family:inherit;transition:all .2s;min-height:44px;
         }
         .btn-ghost:hover{color:#fff;border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.06)}
 
@@ -235,6 +235,7 @@ export default function ProfilePage() {
         .settings-row{
           display:flex;align-items:center;justify-content:space-between;
           padding:1rem 0;border-bottom:1px solid rgba(255,255,255,.05);
+          min-height:44px;
         }
         .settings-row:last-child{ border-bottom:none }
 
@@ -242,7 +243,7 @@ export default function ProfilePage() {
           width:100%;padding:.85rem;background:rgba(248,113,113,.06);
           border:1px solid rgba(248,113,113,.18);border-radius:10px;
           color:#fca5a5;font-weight:600;font-size:.88rem;cursor:pointer;
-          font-family:inherit;transition:all .2s;
+          font-family:inherit;transition:all .2s;min-height:44px;
         }
         .signout-btn:hover{background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.3)}
         .signout-btn:disabled{opacity:.6;cursor:not-allowed}
@@ -297,7 +298,7 @@ export default function ProfilePage() {
               boxShadow: '0 8px 30px rgba(0,0,0,.5)',
             }}>
               {profile?.photo ? (
-                <img src={profile.photo} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src={profile.photo} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
               ) : (
                 <span style={{ fontSize: '2.3rem', fontWeight: '700', color: GREEN }}>
                   {(profile?.name || user.email || 'U')[0].toUpperCase()}
@@ -313,7 +314,7 @@ export default function ProfilePage() {
             />
             <button
               className="avatar-upload-btn"
-              style={{ bottom: '4px', right: '-4px', width: '34px', height: '34px', padding: 0, justifyContent: 'center', borderRadius: '50%' }}
+              style={{ bottom: '4px', right: '-4px', width: '36px', height: '36px', minHeight: '36px', padding: 0, justifyContent: 'center', borderRadius: '50%', border: 0, boxSizing: 'border-box' }}
               onClick={() => avatarInputRef.current?.click()}
               disabled={avatarUploading}
               aria-label="Change profile photo"
