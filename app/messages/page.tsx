@@ -289,7 +289,7 @@ function MessagesInner() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000' }}>
+      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000' }}>
         <div style={{ width: '40px', height: '40px', border: `2px solid rgba(0,230,118,.2)`, borderTop: `2px solid ${GREEN}`, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
         <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       </div>
@@ -308,7 +308,7 @@ function MessagesInner() {
   })
 
   return (
-    <div style={{ minHeight: '100vh', background: '#000', color: '#fff', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', display: 'flex' }}>
+    <div style={{ minHeight: '100dvh', background: '#000', color: '#fff', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', display: 'flex' }}>
       <style>{`
         *{box-sizing:border-box}
         @keyframes spin{to{transform:rotate(360deg)}}
@@ -317,48 +317,57 @@ function MessagesInner() {
         .conv-row, .dir-row{
           display:flex;align-items:center;gap:12px;padding:.85rem 1rem;
           cursor:pointer;border-radius:12px;transition:background .15s;
+          min-height:44px;
         }
         .conv-row:hover, .dir-row:hover{background:rgba(255,255,255,.04)}
         .conv-row.active{background:rgba(0,230,118,.07)}
+
+        .scroll-hidden{
+          scrollbar-width:none;-ms-overflow-style:none;
+        }
+        .scroll-hidden::-webkit-scrollbar{ display:none; }
 
         .msg-input{
           flex:1;padding:.8rem 1rem;background:rgba(255,255,255,.05);
           border:1px solid rgba(255,255,255,.09);border-radius:100px;
           color:#fff;font-size:.9rem;outline:none;font-family:inherit;
+          min-height:44px;box-sizing:border-box;
         }
         .msg-input:focus{border-color:${GREEN}66}
         .msg-input::placeholder{color:rgba(255,255,255,.25)}
 
         .send-btn, .attach-btn, .compose-btn{
-          border-radius:50%;border:none;
+          border-radius:50%;border:none;padding:0;
           display:flex;align-items:center;justify-content:center;cursor:pointer;
-          flex-shrink:0;transition:background .2s;
+          flex-shrink:0;transition:background .2s;box-sizing:border-box;
         }
-        .send-btn, .attach-btn{ width:42px;height:42px; }
+        .send-btn, .attach-btn{ width:44px;height:44px; }
         .send-btn{background:${GREEN}}
         .send-btn:hover:not(:disabled){background:#00c853}
         .send-btn:disabled{opacity:.5;cursor:not-allowed}
         .attach-btn{background:rgba(255,255,255,.06);color:rgba(255,255,255,.6)}
         .attach-btn:hover{background:rgba(255,255,255,.1);color:#fff}
-        .compose-btn{ width:34px;height:34px;background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.25);color:${GREEN}; }
+        .compose-btn{ width:38px;height:38px;background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.25);color:${GREEN}; }
         .compose-btn:hover{background:rgba(0,230,118,.18)}
 
         .search-input{
           width:100%;padding:.75rem 1rem;background:rgba(255,255,255,.04);
           border:1px solid rgba(255,255,255,.09);border-radius:10px;
           color:#fff;font-size:.9rem;outline:none;font-family:inherit;
+          min-height:44px;box-sizing:border-box;
         }
         .search-input:focus{border-color:${GREEN}66}
         .search-input::placeholder{color:rgba(255,255,255,.25)}
 
         .back-mobile{ display:none }
 
-        @media(max-width:900px){ .app-sidebar{display:none!important} .msg-shell{padding-top:3.5rem!important;height:calc(100vh - 3.5rem)!important} }
+        @media(max-width:900px){ .app-sidebar{display:none!important} .msg-shell{padding-top:3.5rem!important;height:calc(100dvh - 3.5rem)!important} }
 
         @media(max-width:700px){
           .msg-shell[data-thread-open="true"] .conv-list{display:none}
           .msg-shell[data-thread-open="false"] .thread-panel{display:none}
           .back-mobile{ display:inline-flex!important }
+          .conv-list{ width:100%!important }
         }
 
         .msg-shell.focused .conv-list{ display:none!important }
@@ -367,7 +376,7 @@ function MessagesInner() {
 
       <Sidebar />
 
-      <div className={`msg-shell${focusedThread ? ' focused' : ''}`} data-thread-open={!!activeId} style={{ flex: 1, display: 'flex', maxWidth: '1000px', margin: '0 auto', height: '100vh' }}>
+      <div className={`msg-shell${focusedThread ? ' focused' : ''}`} data-thread-open={!!activeId} style={{ flex: 1, display: 'flex', maxWidth: '1000px', margin: '0 auto', height: '100dvh' }}>
 
         <div className="conv-list" style={{ width: '340px', flexShrink: 0, borderRight: '1px solid rgba(255,255,255,.06)', display: 'flex', flexDirection: 'column' }}>
 
@@ -380,7 +389,7 @@ function MessagesInner() {
                 </button>
               </div>
 
-              <div style={{ flex: 1, overflowY: 'auto', padding: '0 .5rem' }}>
+              <div className="scroll-hidden" style={{ flex: 1, overflowY: 'auto', padding: '0 .5rem' }}>
                 {inboxError && (
                   <p style={{ color: '#fca5a5', fontSize: '.8rem', textAlign: 'center', padding: '1.5rem 1rem', lineHeight: 1.6 }}>
                     {inboxError}
@@ -401,7 +410,7 @@ function MessagesInner() {
                       onClick={() => setActiveId(conv.id)}
                     >
                       <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(0,230,118,.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '.9rem', fontWeight: '700', color: GREEN, flexShrink: 0, overflow: 'hidden' }}>
-                        {info?.photo ? <img src={info.photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (info?.name || 'U')[0].toUpperCase()}
+                        {info?.photo ? <img src={info.photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} /> : (info?.name || 'U')[0].toUpperCase()}
                       </div>
                       <div style={{ overflow: 'hidden', flex: 1 }}>
                         <p style={{ fontSize: '.92rem', fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{info?.name || 'User'}</p>
@@ -419,7 +428,7 @@ function MessagesInner() {
               <div style={{ padding: '1.5rem 1rem 1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <button
                   onClick={() => setComposeOpen(false)}
-                  style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: '4px' }}
+                  style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: '4px', minWidth: '44px', minHeight: '44px' }}
                   aria-label="Close"
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
@@ -438,7 +447,7 @@ function MessagesInner() {
                   <p style={{ color: '#fca5a5', fontSize: '.78rem', marginTop: '.5rem' }}>{composeError}</p>
                 )}
               </div>
-              <div style={{ flex: 1, overflowY: 'auto', padding: '0 .5rem' }}>
+              <div className="scroll-hidden" style={{ flex: 1, overflowY: 'auto', padding: '0 .5rem' }}>
                 {!directoryLoaded && !composeError && (
                   <p style={{ color: 'rgba(255,255,255,.3)', fontSize: '.85rem', textAlign: 'center', padding: '2rem 1rem' }}>Loading people...</p>
                 )}
@@ -455,7 +464,7 @@ function MessagesInner() {
                     style={{ opacity: starting ? .6 : 1, pointerEvents: starting ? 'none' : 'auto' }}
                   >
                     <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(0,230,118,.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '.9rem', fontWeight: '700', color: GREEN, flexShrink: 0, overflow: 'hidden' }}>
-                      {u.photo ? <img src={u.photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : u.name[0].toUpperCase()}
+                      {u.photo ? <img src={u.photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} /> : u.name[0].toUpperCase()}
                     </div>
                     <div style={{ overflow: 'hidden' }}>
                       <p style={{ fontSize: '.92rem', fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{u.name}</p>
@@ -479,7 +488,7 @@ function MessagesInner() {
                 <button
                   className="back-mobile"
                   onClick={() => { setActiveId(null); setFocusedThread(false) }}
-                  style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: '4px' }}
+                  style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: '4px', minWidth: '44px', minHeight: '44px' }}
                   aria-label="Back to conversations"
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
@@ -488,7 +497,7 @@ function MessagesInner() {
                   style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'rgba(0,230,118,.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '.85rem', fontWeight: '700', color: GREEN, overflow: 'hidden', cursor: 'pointer' }}
                   onClick={() => otherUid && router.push(`/profile/${otherUid}`)}
                 >
-                  {otherInfo?.photo ? <img src={otherInfo.photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (otherInfo?.name || 'U')[0].toUpperCase()}
+                  {otherInfo?.photo ? <img src={otherInfo.photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} /> : (otherInfo?.name || 'U')[0].toUpperCase()}
                 </div>
                 <p
                   style={{ fontWeight: '700', fontSize: '.95rem', cursor: 'pointer' }}
@@ -498,7 +507,7 @@ function MessagesInner() {
                 </p>
               </div>
 
-              <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '.6rem' }}>
+              <div className="scroll-hidden" style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '.6rem' }}>
                 {messages.map(msg => {
                   const mine = msg.senderId === user.uid
                   return (
@@ -576,7 +585,7 @@ function MessagesInner() {
 export default function MessagesPage() {
   return (
     <Suspense fallback={
-      <div style={{ minHeight: '100vh', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ minHeight: '100dvh', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ width: '40px', height: '40px', border: `2px solid rgba(0,230,118,.2)`, borderTop: `2px solid ${GREEN}`, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
         <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       </div>
