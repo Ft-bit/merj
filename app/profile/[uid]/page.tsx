@@ -112,7 +112,7 @@ export default function PublicProfilePage() {
 
   if (loading || fetching) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000' }}>
+      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000' }}>
         <div style={{ width: '40px', height: '40px', border: `2px solid rgba(0,230,118,.2)`, borderTop: `2px solid ${GREEN}`, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
         <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       </div>
@@ -123,13 +123,13 @@ export default function PublicProfilePage() {
 
   if (notFound) {
     return (
-      <div style={{ minHeight: '100vh', background: '#000', color: '#fff', display: 'flex' }}>
+      <div style={{ minHeight: '100dvh', background: '#000', color: '#fff', display: 'flex' }}>
         <Sidebar />
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '1rem' }}>
           <p style={{ color: 'rgba(255,255,255,.4)' }}>This user doesn't exist.</p>
           <button
             onClick={() => router.push('/dashboard')}
-            style={{ padding: '.6rem 1.5rem', background: GREEN, color: '#000', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', fontFamily: 'inherit' }}
+            style={{ padding: '.6rem 1.5rem', background: GREEN, color: '#000', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', fontFamily: 'inherit', minHeight: '44px' }}
           >
             Back to dashboard
           </button>
@@ -143,7 +143,7 @@ export default function PublicProfilePage() {
     : null
 
   return (
-    <div style={{ minHeight: '100vh', background: '#000', color: '#fff', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', display: 'flex' }}>
+    <div style={{ minHeight: '100dvh', background: '#000', color: '#fff', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', display: 'flex' }}>
       <style>{`
         *{box-sizing:border-box}
         @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
@@ -172,7 +172,7 @@ export default function PublicProfilePage() {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
             {profile?.photo ? (
-              <img src={profile.photo} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <img src={profile.photo} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
             ) : (
               <span style={{ fontSize: '2.1rem', fontWeight: '700', color: GREEN }}>
                 {(profile?.name || 'U')[0].toUpperCase()}
@@ -200,7 +200,7 @@ export default function PublicProfilePage() {
             <button
               onClick={handleMessage}
               disabled={messaging}
-              style={{ padding: '.7rem 1.5rem', background: GREEN, color: '#000', border: 'none', borderRadius: '8px', fontWeight: '700', fontSize: '.88rem', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '8px', opacity: messaging ? .7 : 1 }}
+              style={{ padding: '.7rem 1.5rem', background: GREEN, color: '#000', border: 'none', borderRadius: '8px', fontWeight: '700', fontSize: '.88rem', cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '8px', opacity: messaging ? .7 : 1, minHeight: '44px' }}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
               {messaging ? 'Opening...' : 'Message'}
