@@ -91,7 +91,7 @@ export default function NotificationsPage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000' }}>
+      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000' }}>
         <div style={{ width: '40px', height: '40px', border: `2px solid rgba(0,230,118,.2)`, borderTop: `2px solid ${GREEN}`, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
         <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       </div>
@@ -100,7 +100,7 @@ export default function NotificationsPage() {
   if (!user) return null
 
   return (
-    <div style={{ minHeight: '100vh', background: '#000', color: '#fff', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', display: 'flex' }}>
+    <div style={{ minHeight: '100dvh', background: '#000', color: '#fff', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', display: 'flex' }}>
       <style>{`
         *{box-sizing:border-box}
         @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
@@ -109,17 +109,21 @@ export default function NotificationsPage() {
         .notif-row{
           display:flex;align-items:flex-start;gap:12px;padding:1rem 1.25rem;
           cursor:pointer;transition:background .15s;border-bottom:1px solid rgba(255,255,255,.05);
+          min-height:44px;
         }
         .notif-row:hover{background:rgba(255,255,255,.03)}
         .notif-row.unread{background:rgba(0,230,118,.04)}
 
-        @media(max-width:900px){ .app-sidebar{display:none!important} }
+        .scroll-hidden{ scrollbar-width:none;-ms-overflow-style:none; }
+        .scroll-hidden::-webkit-scrollbar{ display:none; }
+
+        @media(max-width:900px){ .app-sidebar{display:none!important} .notif-main{padding-top:3.5rem!important} }
         @media(max-width:700px){ .notif-main{ padding-bottom:5.5rem!important } }
       `}</style>
 
       <Sidebar />
 
-      <main className="notif-main" style={{ flex: 1, maxWidth: '640px', margin: '0 auto', animation: 'fadeUp .4s ease' }}>
+      <main className="notif-main scroll-hidden" style={{ flex: 1, maxWidth: '640px', margin: '0 auto', animation: 'fadeUp .4s ease', overflowY: 'auto' }}>
         <div style={{ padding: '1.75rem 1.5rem 1rem' }}>
           <h1 style={{ fontSize: '1.5rem', fontWeight: '800', letterSpacing: '-.025em' }}>Notifications</h1>
         </div>
