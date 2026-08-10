@@ -31,7 +31,7 @@ function Toggle({ on, onChange, disabled }: { on: boolean; onChange: () => void;
         width: '44px', height: '26px', borderRadius: '100px', border: 'none',
         background: on ? GREEN : 'rgba(255,255,255,.15)', position: 'relative',
         cursor: disabled ? 'not-allowed' : 'pointer', flexShrink: 0, transition: 'background .2s',
-        opacity: disabled ? 0.5 : 1,
+        opacity: disabled ? 0.5 : 1, padding: 0, boxSizing: 'border-box',
       }}
     >
       <div style={{
@@ -134,7 +134,7 @@ export default function SettingsPage() {
 
   if (loading || fetching) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000' }}>
+      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000' }}>
         <div style={{ width: '40px', height: '40px', border: `2px solid rgba(0,230,118,.2)`, borderTop: `2px solid ${GREEN}`, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
         <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       </div>
@@ -143,11 +143,14 @@ export default function SettingsPage() {
   if (!user) return null
 
   return (
-    <div style={{ minHeight: '100vh', background: '#000', color: '#fff', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', display: 'flex' }}>
+    <div style={{ minHeight: '100dvh', background: '#000', color: '#fff', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', display: 'flex' }}>
       <style>{`
         *{box-sizing:border-box}
         @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
         @keyframes spin{to{transform:rotate(360deg)}}
+
+        .scroll-hidden{ scrollbar-width:none;-ms-overflow-style:none; }
+        .scroll-hidden::-webkit-scrollbar{ display:none; }
 
         .section-card{
           background:#0a0a0a;border:1px solid rgba(255,255,255,.07);
@@ -156,12 +159,14 @@ export default function SettingsPage() {
         .settings-row{
           display:flex;align-items:center;justify-content:space-between;gap:1rem;
           padding:1rem 0;border-bottom:1px solid rgba(255,255,255,.05);
+          min-height:44px;
         }
         .settings-row:last-child{ border-bottom:none }
 
         .link-row{
           display:flex;align-items:center;justify-content:space-between;
           padding:1rem 0;cursor:pointer;transition:opacity .15s;
+          min-height:44px;
         }
         .link-row:hover{opacity:.75}
 
@@ -169,21 +174,21 @@ export default function SettingsPage() {
           width:100%;padding:.85rem;background:rgba(248,113,113,.06);
           border:1px solid rgba(248,113,113,.18);border-radius:10px;
           color:#fca5a5;font-weight:600;font-size:.88rem;cursor:pointer;
-          font-family:inherit;transition:all .2s;
+          font-family:inherit;transition:all .2s;min-height:44px;
         }
         .signout-btn:hover{background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.3)}
         .signout-btn:disabled{opacity:.6;cursor:not-allowed}
 
-        @media(max-width:900px){ .app-sidebar{display:none!important} }
+        @media(max-width:900px){ .app-sidebar{display:none!important} .settings-main{padding-top:5rem!important} }
         @media(max-width:700px){ .settings-main{ padding-bottom:5.5rem!important } }
       `}</style>
 
       <Sidebar />
 
-      <main className="settings-main" style={{ flex: 1, maxWidth: '640px', margin: '0 auto', padding: '2.5rem 1.5rem 4rem', animation: 'fadeUp .4s ease' }}>
+      <main className="settings-main scroll-hidden" style={{ flex: 1, maxWidth: '640px', margin: '0 auto', padding: '2.5rem 1.5rem 4rem', animation: 'fadeUp .4s ease', overflowY: 'auto' }}>
         <button
           onClick={() => router.push('/profile')}
-          style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', color: 'rgba(255,255,255,.5)', fontSize: '.85rem', cursor: 'pointer', fontFamily: 'inherit', padding: 0, marginBottom: '1.5rem' }}
+          style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', color: 'rgba(255,255,255,.5)', fontSize: '.85rem', cursor: 'pointer', fontFamily: 'inherit', padding: 0, marginBottom: '1.5rem', minHeight: '44px' }}
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
           Profile
@@ -277,13 +282,13 @@ export default function SettingsPage() {
                 value={announceTitle}
                 onChange={e => setAnnounceTitle(e.target.value)}
                 placeholder="Title"
-                style={{ width: '100%', padding: '.75rem 1rem', background: 'rgba(255,255,255,.035)', border: '1px solid rgba(255,255,255,.09)', borderRadius: '10px', color: '#fff', fontSize: '.9rem', outline: 'none', fontFamily: 'inherit', marginBottom: '.75rem' }}
+                style={{ width: '100%', padding: '.75rem 1rem', background: 'rgba(255,255,255,.035)', border: '1px solid rgba(255,255,255,.09)', borderRadius: '10px', color: '#fff', fontSize: '.9rem', outline: 'none', fontFamily: 'inherit', marginBottom: '.75rem', minHeight: '44px', boxSizing: 'border-box' }}
               />
               <textarea
                 value={announceBody}
                 onChange={e => setAnnounceBody(e.target.value)}
                 placeholder="What do you want to tell everyone?"
-                style={{ width: '100%', padding: '.75rem 1rem', background: 'rgba(255,255,255,.035)', border: '1px solid rgba(255,255,255,.09)', borderRadius: '10px', color: '#fff', fontSize: '.9rem', outline: 'none', fontFamily: 'inherit', minHeight: '90px', resize: 'vertical', marginBottom: '.75rem' }}
+                style={{ width: '100%', padding: '.75rem 1rem', background: 'rgba(255,255,255,.035)', border: '1px solid rgba(255,255,255,.09)', borderRadius: '10px', color: '#fff', fontSize: '.9rem', outline: 'none', fontFamily: 'inherit', minHeight: '90px', resize: 'vertical', marginBottom: '.75rem', boxSizing: 'border-box' }}
               />
 
               {sendResult && (
@@ -295,7 +300,7 @@ export default function SettingsPage() {
               <button
                 onClick={handleBroadcast}
                 disabled={sending}
-                style={{ padding: '.75rem 1.75rem', background: GREEN, color: '#000', border: 'none', borderRadius: '10px', fontWeight: '700', fontSize: '.88rem', cursor: 'pointer', fontFamily: 'inherit', opacity: sending ? .7 : 1 }}
+                style={{ padding: '.75rem 1.75rem', background: GREEN, color: '#000', border: 'none', borderRadius: '10px', fontWeight: '700', fontSize: '.88rem', cursor: 'pointer', fontFamily: 'inherit', opacity: sending ? .7 : 1, minHeight: '44px' }}
               >
                 {sending ? 'Sending...' : 'Send to everyone'}
               </button>
