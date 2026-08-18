@@ -85,8 +85,7 @@ function MessagesInner() {
         createdAt: serverTimestamp(),
       })
     } catch {
-      // Notification failing to write should never block the message
-      // itself from sending — the chat still works either way.
+      // Notification failing to write should never block the message itself.
     }
   }
 
@@ -322,9 +321,7 @@ function MessagesInner() {
         .conv-row:hover, .dir-row:hover{background:rgba(255,255,255,.04)}
         .conv-row.active{background:rgba(0,230,118,.07)}
 
-        .scroll-hidden{
-          scrollbar-width:none;-ms-overflow-style:none;
-        }
+        .scroll-hidden{ scrollbar-width:none;-ms-overflow-style:none; }
         .scroll-hidden::-webkit-scrollbar{ display:none; }
 
         .msg-input{
@@ -361,11 +358,20 @@ function MessagesInner() {
 
         .back-mobile{ display:none }
 
+        .conv-list{
+          width:340px;flex-shrink:0;
+          border-right:1px solid rgba(255,255,255,.06);
+          display:flex;flex-direction:column;
+        }
+        .thread-panel{
+          flex:1;display:flex;flex-direction:column;min-width:0;
+        }
+
         @media(max-width:900px){ .app-sidebar{display:none!important} .msg-shell{padding-top:3.5rem!important;height:calc(100dvh - 3.5rem)!important} }
 
         @media(max-width:700px){
-          .msg-shell[data-thread-open="true"] .conv-list{display:none}
-          .msg-shell[data-thread-open="false"] .thread-panel{display:none}
+          .msg-shell[data-thread-open="true"] .conv-list{display:none!important}
+          .msg-shell[data-thread-open="false"] .thread-panel{display:none!important}
           .back-mobile{ display:inline-flex!important }
           .conv-list{ width:100%!important }
         }
@@ -378,7 +384,7 @@ function MessagesInner() {
 
       <div className={`msg-shell${focusedThread ? ' focused' : ''}`} data-thread-open={!!activeId} style={{ flex: 1, display: 'flex', maxWidth: '1000px', margin: '0 auto', height: '100dvh' }}>
 
-        <div className="conv-list" style={{ width: '340px', flexShrink: 0, borderRight: '1px solid rgba(255,255,255,.06)', display: 'flex', flexDirection: 'column' }}>
+        <div className="conv-list">
 
           {!composeOpen ? (
             <>
@@ -477,7 +483,7 @@ function MessagesInner() {
           )}
         </div>
 
-        <div className="thread-panel" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <div className="thread-panel">
           {!activeId ? (
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,.3)', fontSize: '.9rem' }}>
               Select a conversation or tap the pencil icon
