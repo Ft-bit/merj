@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../context/AuthContext'
+import { useTheme } from '../../context/ThemeContext'
 import { doc, getDoc, setDoc, collection, getDocs, addDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '../../lib/firebase'
 import Sidebar from '../../components/Sidebar'
@@ -44,6 +45,7 @@ function Toggle({ on, onChange, disabled }: { on: boolean; onChange: () => void;
 
 export default function SettingsPage() {
   const { user, loading, logout } = useAuth()
+  const { theme, setTheme } = useTheme()
   const router = useRouter()
 
   const [fetching, setFetching] = useState(true)
@@ -142,6 +144,21 @@ export default function SettingsPage() {
   }
   if (!user) return null
 
+  const themeOptions: { value: 'light' | 'dark' | 'system'; label: string; icon: JSX.Element }[] = [
+    {
+      value: 'light', label: 'Light',
+      icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></svg>,
+    },
+    {
+      value: 'dark', label: 'Dark',
+      icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>,
+    },
+    {
+      value: 'system', label: 'System',
+      icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>,
+    },
+  ]
+
   return (
     <div style={{ minHeight: '100dvh', background: '#000', color: '#fff', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', display: 'flex' }}>
       <style>{`
@@ -169,6 +186,15 @@ export default function SettingsPage() {
           min-height:44px;
         }
         .link-row:hover{opacity:.75}
+
+        .theme-btn{
+          flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;
+          padding:.9rem .5rem;border-radius:12px;cursor:pointer;
+          border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.02);
+          color:rgba(255,255,255,.55);font-size:.78rem;font-weight:600;
+          font-family:inherit;transition:all .15s;min-height:44px;
+        }
+        .theme-btn.active{ border-color:${GREEN}; background:rgba(0,230,118,.08); color:${GREEN}; }
 
         .signout-btn{
           width:100%;padding:.85rem;background:rgba(248,113,113,.06);
@@ -255,7 +281,21 @@ export default function SettingsPage() {
           Appearance
         </p>
         <div className="section-card" style={{ marginBottom: '2rem' }}>
-          <div className="settings-row">
+          <p style={{ fontSize: '.9rem', fontWeight: '600', marginBottom: '.85rem' }}>Theme</p>
+          <div style={{ display: 'flex', gap: '.6rem', marginBottom: '1.25rem' }}>
+            {themeOptions.map(opt => (
+              <button
+                key={opt.value}
+                className={`theme-btn${theme === opt.value ? ' active' : ''}`}
+                onClick={() => setTheme(opt.value)}
+              >
+                {opt.icon}
+                {opt.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="settings-row" style={{ borderTop: '1px solid rgba(255,255,255,.05)', paddingTop: '1rem' }}>
             <div>
               <p style={{ fontSize: '.9rem', fontWeight: '600' }}>Compact lists</p>
               <p style={{ fontSize: '.8rem', color: 'rgba(255,255,255,.4)', marginTop: '2px' }}>Tighter spacing in your inbox and listings</p>
@@ -263,7 +303,7 @@ export default function SettingsPage() {
             <Toggle on={prefs.compactLists} onChange={() => updatePref('compactLists')} disabled={savingKey === 'compactLists'} />
           </div>
           <p style={{ fontSize: '.75rem', color: 'rgba(255,255,255,.25)', paddingTop: '.5rem' }}>
-            Merj uses a fixed dark theme with green accents — this isn't changeable, by design.
+            Currently applied to your Home page — the rest of Merj is being converted to match next.
           </p>
         </div>
 
