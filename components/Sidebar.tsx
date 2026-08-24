@@ -105,19 +105,20 @@ export default function Sidebar() {
         .sb-item{
           display:flex;align-items:center;gap:14px;padding:.8rem 1rem;
           border-radius:100px;cursor:pointer;transition:background .15s;
-          color:rgba(255,255,255,.75);font-size:.97rem;font-weight:500;
+          color:var(--text-secondary);font-size:.97rem;font-weight:500;
           width:100%;background:none;border:none;font-family:inherit;text-align:left;
           box-sizing:border-box;
         }
-        .sb-item:hover{background:rgba(255,255,255,.06)}
-        .sb-item.active{color:#fff;font-weight:700;background:rgba(0,230,118,.06)}
+        .sb-item:hover{background:var(--border-color)}
+        .sb-item.active{color:var(--text-primary);font-weight:700;background:rgba(0,230,118,.08)}
         .sb-list-btn{
           width:100%;padding:.9rem;background:${GREEN};color:#000;border:none;
           border-radius:100px;font-weight:700;font-size:.95rem;cursor:pointer;
           font-family:inherit;transition:background .2s;box-sizing:border-box;
         }
         .sb-list-btn:hover{background:#00c853}
-        .sb-divider{ height:1px; background:rgba(255,255,255,.07); margin:1rem 0; }
+        .sb-divider{ height:1px; background:var(--border-color); margin:1rem 0; }
+        .sb-signout{ color:var(--text-tertiary); }
 
         .mobile-nav{ display:none }
         .mobile-topbar{ display:none }
@@ -131,31 +132,31 @@ export default function Sidebar() {
             position:fixed;top:0;left:0;right:0;z-index:150;
             align-items:center;justify-content:space-between;
             padding:.85rem 1.1rem;
-            background:rgba(5,5,5,.85);backdrop-filter:blur(16px);
-            border-bottom:1px solid rgba(255,255,255,.06);
+            background:var(--bg-elevated);backdrop-filter:blur(16px);
+            border-bottom:1px solid var(--border-color);
           }
 
           .mobile-nav{
             display:flex!important;
             position:fixed;bottom:0;left:0;right:0;z-index:200;
-            background:rgba(5,5,5,.92);backdrop-filter:blur(20px);
-            border-top:1px solid rgba(255,255,255,.08);
+            background:var(--bg-elevated);backdrop-filter:blur(20px);
+            border-top:1px solid var(--border-color);
             padding:.5rem .5rem calc(.5rem + env(safe-area-inset-bottom));
             align-items:center;
           }
           .mnav-item{
             display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
-            background:none;border:none;color:rgba(255,255,255,.4);
+            background:none;border:none;color:var(--text-tertiary);
             font-size:.58rem;font-family:inherit;cursor:pointer;
             padding:.3rem .3rem;flex:1;min-width:0;min-height:44px;
             box-sizing:border-box;
           }
           .mnav-item.active{color:${GREEN}}
           .mnav-plus{
-            width:50px;height:50px;border-radius:50%;background:${GREEN};
+            width:46px;height:46px;border-radius:50%;background:${GREEN};
             display:flex;align-items:center;justify-content:center;color:#000;
             border:none;cursor:pointer;flex-shrink:0;padding:0;
-            position:absolute;left:50%;top:-22px;transform:translateX(-50%);
+            position:absolute;left:50%;top:-18px;transform:translateX(-50%);
             box-sizing:border-box;
           }
 
@@ -165,8 +166,8 @@ export default function Sidebar() {
           }
           .drawer-panel{
             position:fixed;top:0;left:0;bottom:0;z-index:301;
-            width:82%;max-width:320px;background:#0a0a0a;
-            border-right:1px solid rgba(255,255,255,.08);
+            width:82%;max-width:320px;background:var(--bg-elevated);
+            border-right:1px solid var(--border-color);
             padding:1.5rem 1rem;display:flex;flex-direction:column;
             animation:drawerIn .25s cubic-bezier(.22,1,.36,1);
             scrollbar-width:none;-ms-overflow-style:none;
@@ -187,7 +188,7 @@ export default function Sidebar() {
       <div className="mobile-topbar">
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }} onClick={() => router.push('/dashboard')}>
           <div style={{ width: '26px', height: '26px', background: GREEN, borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900', fontSize: '13px', color: '#000' }}>M</div>
-          <span style={{ fontWeight: '800', fontSize: '1.02rem', color: '#fff', letterSpacing: '-.02em' }}>Merj</span>
+          <span style={{ fontWeight: '800', fontSize: '1.02rem', color: 'var(--text-primary)', letterSpacing: '-.02em' }}>Merj</span>
         </div>
         <button
           className="avatar-btn"
@@ -210,9 +211,9 @@ export default function Sidebar() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
                 <div style={{ width: '26px', height: '26px', background: GREEN, borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900', fontSize: '13px', color: '#000' }}>M</div>
-                <span style={{ fontWeight: '800', fontSize: '1.05rem', color: '#fff', letterSpacing: '-.02em' }}>Merj</span>
+                <span style={{ fontWeight: '800', fontSize: '1.05rem', color: 'var(--text-primary)', letterSpacing: '-.02em' }}>Merj</span>
               </div>
-              <button onClick={() => setDrawerOpen(false)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,.6)', cursor: 'pointer', padding: '4px', minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} aria-label="Close menu">
+              <button onClick={() => setDrawerOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '4px', minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} aria-label="Close menu">
                 <IconClose />
               </button>
             </div>
@@ -229,18 +230,18 @@ export default function Sidebar() {
                 )}
               </button>
               <div style={{ overflow: 'hidden' }}>
-                <p style={{ fontSize: '.95rem', fontWeight: '700', color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <p style={{ fontSize: '.95rem', fontWeight: '700', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {selfInfo.name || 'User'}
                 </p>
-                <p style={{ fontSize: '.78rem', color: 'rgba(255,255,255,.4)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <p style={{ fontSize: '.78rem', color: 'var(--text-tertiary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {user?.email}
                 </p>
               </div>
             </div>
 
             <div style={{ display: 'flex', gap: '1.25rem', padding: '.5rem .75rem 1rem' }}>
-              <span style={{ fontSize: '.8rem', color: 'rgba(255,255,255,.5)' }}><strong style={{ color: '#fff' }}>0</strong> Listings</span>
-              <span style={{ fontSize: '.8rem', color: 'rgba(255,255,255,.5)' }}><strong style={{ color: '#fff' }}>0</strong> Sold</span>
+              <span style={{ fontSize: '.8rem', color: 'var(--text-secondary)' }}><strong style={{ color: 'var(--text-primary)' }}>0</strong> Listings</span>
+              <span style={{ fontSize: '.8rem', color: 'var(--text-secondary)' }}><strong style={{ color: 'var(--text-primary)' }}>0</strong> Sold</span>
             </div>
 
             <div className="sb-divider" />
@@ -261,7 +262,7 @@ export default function Sidebar() {
                     </span>
                   )}
                   {!item.enabled && (
-                    <span style={{ marginLeft: 'auto', fontSize: '.65rem', color: 'rgba(0,230,118,.6)', background: 'rgba(0,230,118,.08)', padding: '2px 7px', borderRadius: '100px', fontWeight: '600' }}>soon</span>
+                    <span style={{ marginLeft: 'auto', fontSize: '.65rem', color: 'rgba(0,230,118,.7)', background: 'rgba(0,230,118,.08)', padding: '2px 7px', borderRadius: '100px', fontWeight: '600' }}>soon</span>
                   )}
                 </button>
               ))}
@@ -273,8 +274,9 @@ export default function Sidebar() {
               List an asset
             </button>
             <button
+              className="sb-signout"
               onClick={async () => { setDrawerOpen(false); await logout(); router.push('/login') }}
-              style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,.35)', fontSize: '.85rem', cursor: 'pointer', fontFamily: 'inherit', padding: '.6rem 1rem', textAlign: 'left', minHeight: '44px' }}
+              style={{ background: 'none', border: 'none', fontSize: '.85rem', cursor: 'pointer', fontFamily: 'inherit', padding: '.6rem 1rem', textAlign: 'left', minHeight: '44px' }}
             >
               Sign out
             </button>
@@ -285,14 +287,15 @@ export default function Sidebar() {
       <nav className="app-sidebar" style={{
         width: '260px', flexShrink: 0, position: 'sticky', top: 0,
         height: '100dvh', display: 'flex', flexDirection: 'column',
-        padding: '1.5rem 1rem', borderRight: '1px solid rgba(255,255,255,.06)',
+        padding: '1.5rem 1rem', borderRight: '1px solid var(--border-color)',
+        background: 'var(--bg-primary)',
       }}>
         <div
           style={{ display: 'flex', alignItems: 'center', gap: '9px', padding: '.5rem 1rem 1.75rem', cursor: 'pointer' }}
           onClick={() => router.push('/')}
         >
           <div style={{ width: '30px', height: '30px', background: GREEN, borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900', fontSize: '15px', color: '#000' }}>M</div>
-          <span style={{ fontWeight: '800', fontSize: '1.2rem', color: '#fff', letterSpacing: '-.03em' }}>Merj</span>
+          <span style={{ fontWeight: '800', fontSize: '1.2rem', color: 'var(--text-primary)', letterSpacing: '-.03em' }}>Merj</span>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', flex: 1 }}>
@@ -310,7 +313,7 @@ export default function Sidebar() {
                 </span>
               )}
               {!item.enabled && (
-                <span style={{ marginLeft: 'auto', fontSize: '.65rem', color: 'rgba(0,230,118,.6)', background: 'rgba(0,230,118,.08)', padding: '2px 7px', borderRadius: '100px', fontWeight: '600' }}>soon</span>
+                <span style={{ marginLeft: 'auto', fontSize: '.65rem', color: 'rgba(0,230,118,.7)', background: 'rgba(0,230,118,.08)', padding: '2px 7px', borderRadius: '100px', fontWeight: '600' }}>soon</span>
               )}
             </button>
           ))}
@@ -322,7 +325,7 @@ export default function Sidebar() {
           </button>
 
           {comingSoon && (
-            <p style={{ fontSize: '.78rem', color: 'rgba(255,255,255,.35)', textAlign: 'center', marginTop: '.5rem' }}>
+            <p style={{ fontSize: '.78rem', color: 'var(--text-tertiary)', textAlign: 'center', marginTop: '.5rem' }}>
               {comingSoon} is coming soon
             </p>
           )}
@@ -342,17 +345,18 @@ export default function Sidebar() {
             )}
           </div>
           <div style={{ overflow: 'hidden' }}>
-            <p style={{ fontSize: '.88rem', fontWeight: '700', color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <p style={{ fontSize: '.88rem', fontWeight: '700', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {selfInfo.name || 'User'}
             </p>
-            <p style={{ fontSize: '.74rem', color: 'rgba(255,255,255,.35)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <p style={{ fontSize: '.74rem', color: 'var(--text-tertiary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               0 Listings · 0 Sold
             </p>
           </div>
         </div>
         <button
+          className="sb-signout"
           onClick={async () => { await logout(); router.push('/login') }}
-          style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,.3)', fontSize: '.8rem', cursor: 'pointer', fontFamily: 'inherit', padding: '.6rem 1rem', textAlign: 'left' }}
+          style={{ background: 'none', border: 'none', fontSize: '.8rem', cursor: 'pointer', fontFamily: 'inherit', padding: '.6rem 1rem', textAlign: 'left' }}
         >
           Sign out
         </button>
@@ -374,7 +378,7 @@ export default function Sidebar() {
           <IconBell />
           Alerts
           {unreadCount > 0 && (
-            <span style={{ position: 'absolute', top: '-2px', right: '22%', fontSize: '.6rem', fontWeight: '700', color: '#000', background: GREEN, minWidth: '15px', height: '15px', borderRadius: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 3px' }}>
+            <span style={{ position: 'absolute', top: '0px', right: '10px', fontSize: '.6rem', fontWeight: '700', color: '#000', background: GREEN, minWidth: '15px', height: '15px', borderRadius: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 3px', border: '2px solid var(--bg-elevated)' }}>
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
@@ -399,7 +403,7 @@ export default function Sidebar() {
         </button>
 
         {comingSoon && (
-          <div style={{ position: 'fixed', bottom: '78px', left: '50%', transform: 'translateX(-50%)', background: 'rgba(0,0,0,.9)', color: 'rgba(255,255,255,.8)', fontSize: '.78rem', padding: '.5rem 1rem', borderRadius: '100px', whiteSpace: 'nowrap' }}>
+          <div style={{ position: 'fixed', bottom: '78px', left: '50%', transform: 'translateX(-50%)', background: 'rgba(0,0,0,.9)', color: '#fff', fontSize: '.78rem', padding: '.5rem 1rem', borderRadius: '100px', whiteSpace: 'nowrap' }}>
             {comingSoon} is coming soon
           </div>
         )}
