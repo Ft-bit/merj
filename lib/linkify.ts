@@ -1,6 +1,6 @@
 import { ReactNode } from 'react'
 
-// Turns any http(s) URL inside plain text into a clickable link. The href
+// Turns any http(s) URL inside plain text into a clickable link. The hre
 // keeps the full original URL (so it navigates correctly), but the VISIBLE
 // text strips the protocol and trailing slash — so a bio showing
 // "https://vemzomart.com/" displays as just "vemzomart.com" instead of the
