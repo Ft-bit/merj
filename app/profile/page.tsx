@@ -153,7 +153,7 @@ export default function ProfilePage() {
 
   if (loading || fetching) {
     return (
-      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000' }}>
+      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)' }}>
         <div style={{ width: '40px', height: '40px', border: `2px solid rgba(0,230,118,.2)`, borderTop: `2px solid ${GREEN}`, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
         <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       </div>
@@ -164,9 +164,9 @@ export default function ProfilePage() {
 
   if (fetchError) {
     return (
-      <div style={{ minHeight: '100dvh', background: '#000', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', padding: '2rem' }}>
+      <div style={{ minHeight: '100dvh', background: 'var(--bg-primary)', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', padding: '2rem' }}>
         <div style={{ textAlign: 'center', maxWidth: '360px' }}>
-          <p style={{ color: '#fca5a5', fontSize: '.9rem', marginBottom: '1.25rem' }}>{fetchError}</p>
+          <p style={{ color: '#f87171', fontSize: '.9rem', marginBottom: '1.25rem' }}>{fetchError}</p>
           <button
             onClick={fetchProfile}
             style={{ padding: '.7rem 1.5rem', background: GREEN, color: '#000', border: 'none', borderRadius: '8px', fontWeight: '700', fontSize: '.88rem', cursor: 'pointer', fontFamily: 'inherit' }}
@@ -183,7 +183,7 @@ export default function ProfilePage() {
     : null
 
   return (
-    <div style={{ minHeight: '100dvh', background: '#000', color: '#fff', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', display: 'flex' }}>
+    <div style={{ minHeight: '100dvh', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', display: 'flex' }}>
       <style>{`
         *{box-sizing:border-box}
         @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
@@ -199,13 +199,13 @@ export default function ProfilePage() {
         .cover-upload-btn:hover, .avatar-upload-btn:hover{background:rgba(0,0,0,.85)}
 
         .field-input{
-          width:100%;padding:.85rem 1rem;background:rgba(255,255,255,.035);
-          border:1px solid rgba(255,255,255,.09);border-radius:10px;
-          color:#fff;font-size:.94rem;outline:none;font-family:inherit;
+          width:100%;padding:.85rem 1rem;background:var(--bg-input);
+          border:1px solid var(--border-color);border-radius:10px;
+          color:var(--text-primary);font-size:.94rem;outline:none;font-family:inherit;
           transition:border-color .2s;min-height:44px;
         }
         .field-input:focus{border-color:${GREEN}66}
-        .field-input::placeholder{color:rgba(255,255,255,.2)}
+        .field-input::placeholder{color:var(--text-tertiary)}
         textarea.field-input{resize:vertical;min-height:90px;line-height:1.65}
 
         .btn-green{
@@ -217,35 +217,35 @@ export default function ProfilePage() {
         .btn-green:disabled{opacity:.6;cursor:not-allowed}
 
         .btn-ghost{
-          padding:.8rem 1.85rem;background:rgba(255,255,255,.04);color:rgba(255,255,255,.7);
-          border:1px solid rgba(255,255,255,.12);border-radius:10px;font-weight:600;
+          padding:.8rem 1.85rem;background:var(--bg-input);color:var(--text-secondary);
+          border:1px solid var(--border-color);border-radius:10px;font-weight:600;
           font-size:.9rem;cursor:pointer;font-family:inherit;transition:all .2s;min-height:44px;
         }
-        .btn-ghost:hover{color:#fff;border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.06)}
+        .btn-ghost:hover{color:var(--text-primary);border-color:var(--border-color-strong)}
 
         .stat-block{ text-align:center }
         .stat-num{ font-size:1.3rem; font-weight:800; letter-spacing:-.02em }
-        .stat-label{ font-size:.7rem; color:rgba(255,255,255,.35); text-transform:uppercase; letter-spacing:.06em; margin-top:3px }
+        .stat-label{ font-size:.7rem; color:var(--text-tertiary); text-transform:uppercase; letter-spacing:.06em; margin-top:3px }
 
         .section-card{
-          background:#0a0a0a;border:1px solid rgba(255,255,255,.07);
+          background:var(--bg-card);border:1px solid var(--border-color);
           border-radius:16px;padding:1.5rem;
         }
 
         .settings-row{
           display:flex;align-items:center;justify-content:space-between;
-          padding:1rem 0;border-bottom:1px solid rgba(255,255,255,.05);
+          padding:1rem 0;border-bottom:1px solid var(--border-color);
           min-height:44px;
         }
         .settings-row:last-child{ border-bottom:none }
 
         .signout-btn{
           width:100%;padding:.85rem;background:rgba(248,113,113,.06);
-          border:1px solid rgba(248,113,113,.18);border-radius:10px;
-          color:#fca5a5;font-weight:600;font-size:.88rem;cursor:pointer;
+          border:1px solid rgba(248,113,113,.25);border-radius:10px;
+          color:#f87171;font-weight:600;font-size:.88rem;cursor:pointer;
           font-family:inherit;transition:all .2s;min-height:44px;
         }
-        .signout-btn:hover{background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.3)}
+        .signout-btn:hover{background:rgba(248,113,113,.12)}
         .signout-btn:disabled{opacity:.6;cursor:not-allowed}
 
         @media(max-width:900px){ .app-sidebar{display:none!important} .profile-main{padding-top:3.5rem!important} }
@@ -292,10 +292,10 @@ export default function ProfilePage() {
           <div style={{ position: 'relative', width: '112px' }}>
             <div style={{
               width: '112px', height: '112px', borderRadius: '50%',
-              border: '4px solid #000', overflow: 'hidden',
+              border: '4px solid var(--bg-primary)', overflow: 'hidden',
               background: 'rgba(0,230,118,.15)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 8px 30px rgba(0,0,0,.5)',
+              boxShadow: '0 8px 30px rgba(0,0,0,.3)',
             }}>
               {profile?.photo ? (
                 <img src={profile.photo} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
@@ -338,9 +338,9 @@ export default function ProfilePage() {
                       <path d="M9 12l2 2 4-4" stroke="#000" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                   </h1>
-                  <p style={{ color: 'rgba(255,255,255,.42)', fontSize: '.9rem', marginTop: '.3rem' }}>{user.email}</p>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '.9rem', marginTop: '.3rem' }}>{user.email}</p>
                   {memberSince && (
-                    <p style={{ color: 'rgba(255,255,255,.28)', fontSize: '.8rem', marginTop: '.45rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <p style={{ color: 'var(--text-tertiary)', fontSize: '.8rem', marginTop: '.45rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
                       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
                       Member since {memberSince}
                     </p>
@@ -370,7 +370,7 @@ export default function ProfilePage() {
           {!editing ? (
             <>
               {profile?.bio && (
-                <p style={{ color: 'rgba(255,255,255,.65)', fontSize: '.95rem', lineHeight: 1.8, marginTop: '1.35rem', maxWidth: '560px' }}>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '.95rem', lineHeight: 1.8, marginTop: '1.35rem', maxWidth: '560px' }}>
                   {linkifyText(profile.bio, GREEN)}
                 </p>
               )}
@@ -381,12 +381,12 @@ export default function ProfilePage() {
           ) : (
             <div style={{ maxWidth: '560px', marginTop: '1.25rem' }}>
               <div style={{ marginBottom: '1.1rem' }}>
-                <label style={{ display: 'block', fontSize: '.75rem', fontWeight: '600', color: 'rgba(255,255,255,.35)', marginBottom: '.45rem', letterSpacing: '.04em', textTransform: 'uppercase' }}>Name</label>
+                <label style={{ display: 'block', fontSize: '.75rem', fontWeight: '600', color: 'var(--text-tertiary)', marginBottom: '.45rem', letterSpacing: '.04em', textTransform: 'uppercase' }}>Name</label>
                 <input className="field-input" value={name} onChange={e => setName(e.target.value)} placeholder="Your name" />
               </div>
               <div style={{ marginBottom: '1.1rem' }}>
-                <label style={{ display: 'block', fontSize: '.75rem', fontWeight: '600', color: 'rgba(255,255,255,.35)', marginBottom: '.45rem', letterSpacing: '.04em', textTransform: 'uppercase' }}>
-                  Bio <span style={{ color: 'rgba(255,255,255,.2)', textTransform: 'none', fontWeight: '400' }}>({bio.length}/280)</span>
+                <label style={{ display: 'block', fontSize: '.75rem', fontWeight: '600', color: 'var(--text-tertiary)', marginBottom: '.45rem', letterSpacing: '.04em', textTransform: 'uppercase' }}>
+                  Bio <span style={{ color: 'var(--text-tertiary)', textTransform: 'none', fontWeight: '400' }}>({bio.length}/280)</span>
                 </label>
                 <textarea
                   className="field-input"
@@ -397,7 +397,7 @@ export default function ProfilePage() {
               </div>
 
               {error && (
-                <div style={{ padding: '.75rem 1rem', background: 'rgba(248,113,113,.07)', border: '1px solid rgba(248,113,113,.18)', borderRadius: '8px', color: '#fca5a5', fontSize: '.83rem', marginBottom: '1.1rem' }}>
+                <div style={{ padding: '.75rem 1rem', background: 'rgba(248,113,113,.07)', border: '1px solid rgba(248,113,113,.25)', borderRadius: '8px', color: '#f87171', fontSize: '.83rem', marginBottom: '1.1rem' }}>
                   {error}
                 </div>
               )}
@@ -431,21 +431,21 @@ export default function ProfilePage() {
 
         {!editing && (
           <div style={{ padding: '2.5rem 1.5rem 0' }}>
-            <p style={{ fontSize: '.72rem', fontWeight: '700', letterSpacing: '.06em', textTransform: 'uppercase', color: 'rgba(255,255,255,.28)', marginBottom: '1rem' }}>
+            <p style={{ fontSize: '.72rem', fontWeight: '700', letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--text-tertiary)', marginBottom: '1rem' }}>
               Account
             </p>
             <div className="section-card">
               <div className="settings-row" onClick={() => router.push('/settings')} style={{ cursor: 'pointer' }}>
                 <div>
                   <p style={{ fontSize: '.9rem', fontWeight: '600' }}>Settings</p>
-                  <p style={{ fontSize: '.8rem', color: 'rgba(255,255,255,.35)', marginTop: '2px' }}>Notifications, appearance, account</p>
+                  <p style={{ fontSize: '.8rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>Notifications, appearance, account</p>
                 </div>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg>
               </div>
               <div className="settings-row">
                 <div>
                   <p style={{ fontSize: '.9rem', fontWeight: '600' }}>Email</p>
-                  <p style={{ fontSize: '.8rem', color: 'rgba(255,255,255,.35)', marginTop: '2px' }}>{user.email}</p>
+                  <p style={{ fontSize: '.8rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>{user.email}</p>
                 </div>
               </div>
             </div>
