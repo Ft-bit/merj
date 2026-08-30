@@ -91,7 +91,7 @@ export default function NotificationsPage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000' }}>
+      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)' }}>
         <div style={{ width: '40px', height: '40px', border: `2px solid rgba(0,230,118,.2)`, borderTop: `2px solid ${GREEN}`, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
         <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       </div>
@@ -100,7 +100,7 @@ export default function NotificationsPage() {
   if (!user) return null
 
   return (
-    <div style={{ minHeight: '100dvh', background: '#000', color: '#fff', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', display: 'flex' }}>
+    <div style={{ minHeight: '100dvh', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', display: 'flex' }}>
       <style>{`
         *{box-sizing:border-box}
         @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
@@ -108,11 +108,11 @@ export default function NotificationsPage() {
 
         .notif-row{
           display:flex;align-items:flex-start;gap:12px;padding:1rem 1.25rem;
-          cursor:pointer;transition:background .15s;border-bottom:1px solid rgba(255,255,255,.05);
+          cursor:pointer;transition:background .15s;border-bottom:1px solid var(--border-color);
           min-height:44px;
         }
-        .notif-row:hover{background:rgba(255,255,255,.03)}
-        .notif-row.unread{background:rgba(0,230,118,.04)}
+        .notif-row:hover{background:var(--bg-input)}
+        .notif-row.unread{background:rgba(0,230,118,.05)}
 
         .scroll-hidden{ scrollbar-width:none;-ms-overflow-style:none; }
         .scroll-hidden::-webkit-scrollbar{ display:none; }
@@ -129,11 +129,11 @@ export default function NotificationsPage() {
         </div>
 
         {fetchError && (
-          <p style={{ color: '#fca5a5', fontSize: '.85rem', textAlign: 'center', padding: '2rem 1.5rem', lineHeight: 1.6 }}>{fetchError}</p>
+          <p style={{ color: '#f87171', fontSize: '.85rem', textAlign: 'center', padding: '2rem 1.5rem', lineHeight: 1.6 }}>{fetchError}</p>
         )}
 
         {!fetchError && !fetching && notifications.length === 0 && (
-          <p style={{ color: 'rgba(255,255,255,.3)', fontSize: '.9rem', textAlign: 'center', padding: '3rem 1.5rem' }}>
+          <p style={{ color: 'var(--text-tertiary)', fontSize: '.9rem', textAlign: 'center', padding: '3rem 1.5rem' }}>
             Nothing yet. New messages and announcements will show up here.
           </p>
         )}
@@ -152,14 +152,14 @@ export default function NotificationsPage() {
                 {n.type === 'listing' && <IconTag />}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ fontSize: '.9rem', fontWeight: n.read ? '500' : '700', color: n.read ? 'rgba(255,255,255,.75)' : '#fff' }}>
+                <p style={{ fontSize: '.9rem', fontWeight: n.read ? '500' : '700', color: n.read ? 'var(--text-secondary)' : 'var(--text-primary)' }}>
                   {n.title}
                 </p>
-                <p style={{ fontSize: '.83rem', color: 'rgba(255,255,255,.4)', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                <p style={{ fontSize: '.83rem', color: 'var(--text-tertiary)', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
                   {n.body}
                 </p>
                 {created && (
-                  <p style={{ fontSize: '.75rem', color: 'rgba(255,255,255,.25)', marginTop: '4px' }}>{timeAgo(created)}</p>
+                  <p style={{ fontSize: '.75rem', color: 'var(--text-tertiary)', marginTop: '4px' }}>{timeAgo(created)}</p>
                 )}
               </div>
               {!n.read && (
