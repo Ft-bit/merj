@@ -112,7 +112,7 @@ export default function PublicProfilePage() {
 
   if (loading || fetching) {
     return (
-      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000' }}>
+      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)' }}>
         <div style={{ width: '40px', height: '40px', border: `2px solid rgba(0,230,118,.2)`, borderTop: `2px solid ${GREEN}`, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
         <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       </div>
@@ -123,10 +123,10 @@ export default function PublicProfilePage() {
 
   if (notFound) {
     return (
-      <div style={{ minHeight: '100dvh', background: '#000', color: '#fff', display: 'flex' }}>
+      <div style={{ minHeight: '100dvh', background: 'var(--bg-primary)', color: 'var(--text-primary)', display: 'flex' }}>
         <Sidebar />
         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '1rem' }}>
-          <p style={{ color: 'rgba(255,255,255,.4)' }}>This user doesn't exist.</p>
+          <p style={{ color: 'var(--text-secondary)' }}>This user doesn't exist.</p>
           <button
             onClick={() => router.push('/dashboard')}
             style={{ padding: '.6rem 1.5rem', background: GREEN, color: '#000', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', fontFamily: 'inherit', minHeight: '44px' }}
@@ -143,7 +143,7 @@ export default function PublicProfilePage() {
     : null
 
   return (
-    <div style={{ minHeight: '100dvh', background: '#000', color: '#fff', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', display: 'flex' }}>
+    <div style={{ minHeight: '100dvh', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', display: 'flex' }}>
       <style>{`
         *{box-sizing:border-box}
         @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
@@ -167,7 +167,7 @@ export default function PublicProfilePage() {
         <div style={{ padding: '0 1.5rem', marginTop: '-52px', position: 'relative', animation: 'fadeUp .6s ease' }}>
           <div style={{
             width: '104px', height: '104px', borderRadius: '50%',
-            border: '4px solid #000', overflow: 'hidden',
+            border: '4px solid var(--bg-primary)', overflow: 'hidden',
             background: 'rgba(0,230,118,.15)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
@@ -190,7 +190,7 @@ export default function PublicProfilePage() {
                 </svg>
               </h1>
               {memberSince && (
-                <p style={{ color: 'rgba(255,255,255,.28)', fontSize: '.8rem', marginTop: '.4rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <p style={{ color: 'var(--text-tertiary)', fontSize: '.8rem', marginTop: '.4rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
                   Member since {memberSince}
                 </p>
@@ -208,11 +208,11 @@ export default function PublicProfilePage() {
           </div>
 
           {messageError && (
-            <p style={{ color: '#fca5a5', fontSize: '.83rem', marginTop: '.75rem' }}>{messageError}</p>
+            <p style={{ color: '#f87171', fontSize: '.83rem', marginTop: '.75rem' }}>{messageError}</p>
           )}
 
           {profile?.bio && (
-            <p style={{ color: 'rgba(255,255,255,.62)', fontSize: '.94rem', lineHeight: 1.75, marginTop: '1.25rem', maxWidth: '520px' }}>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '.94rem', lineHeight: 1.75, marginTop: '1.25rem', maxWidth: '520px' }}>
               {linkifyText(profile.bio, GREEN)}
             </p>
           )}
