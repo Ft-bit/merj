@@ -288,7 +288,7 @@ function MessagesInner() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000' }}>
+      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)' }}>
         <div style={{ width: '40px', height: '40px', border: `2px solid rgba(0,230,118,.2)`, borderTop: `2px solid ${GREEN}`, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
         <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       </div>
@@ -307,7 +307,7 @@ function MessagesInner() {
   })
 
   return (
-    <div style={{ minHeight: '100dvh', background: '#000', color: '#fff', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', display: 'flex' }}>
+    <div style={{ minHeight: '100dvh', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', display: 'flex' }}>
       <style>{`
         *{box-sizing:border-box}
         @keyframes spin{to{transform:rotate(360deg)}}
@@ -318,20 +318,20 @@ function MessagesInner() {
           cursor:pointer;border-radius:12px;transition:background .15s;
           min-height:44px;
         }
-        .conv-row:hover, .dir-row:hover{background:rgba(255,255,255,.04)}
-        .conv-row.active{background:rgba(0,230,118,.07)}
+        .conv-row:hover, .dir-row:hover{background:var(--bg-input)}
+        .conv-row.active{background:rgba(0,230,118,.08)}
 
         .scroll-hidden{ scrollbar-width:none;-ms-overflow-style:none; }
         .scroll-hidden::-webkit-scrollbar{ display:none; }
 
         .msg-input{
-          flex:1;padding:.8rem 1rem;background:rgba(255,255,255,.05);
-          border:1px solid rgba(255,255,255,.09);border-radius:100px;
-          color:#fff;font-size:.9rem;outline:none;font-family:inherit;
+          flex:1;padding:.8rem 1rem;background:var(--bg-input);
+          border:1px solid var(--border-color);border-radius:100px;
+          color:var(--text-primary);font-size:.9rem;outline:none;font-family:inherit;
           min-height:44px;box-sizing:border-box;
         }
         .msg-input:focus{border-color:${GREEN}66}
-        .msg-input::placeholder{color:rgba(255,255,255,.25)}
+        .msg-input::placeholder{color:var(--text-tertiary)}
 
         .send-btn, .attach-btn, .compose-btn{
           border-radius:50%;border:none;padding:0;
@@ -342,25 +342,25 @@ function MessagesInner() {
         .send-btn{background:${GREEN}}
         .send-btn:hover:not(:disabled){background:#00c853}
         .send-btn:disabled{opacity:.5;cursor:not-allowed}
-        .attach-btn{background:rgba(255,255,255,.06);color:rgba(255,255,255,.6)}
-        .attach-btn:hover{background:rgba(255,255,255,.1);color:#fff}
-        .compose-btn{ width:38px;height:38px;background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.25);color:${GREEN}; }
+        .attach-btn{background:var(--bg-input);color:var(--text-secondary)}
+        .attach-btn:hover{background:var(--border-color);color:var(--text-primary)}
+        .compose-btn{ width:38px;height:38px;background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.3);color:${GREEN}; }
         .compose-btn:hover{background:rgba(0,230,118,.18)}
 
         .search-input{
-          width:100%;padding:.75rem 1rem;background:rgba(255,255,255,.04);
-          border:1px solid rgba(255,255,255,.09);border-radius:10px;
-          color:#fff;font-size:.9rem;outline:none;font-family:inherit;
+          width:100%;padding:.75rem 1rem;background:var(--bg-input);
+          border:1px solid var(--border-color);border-radius:10px;
+          color:var(--text-primary);font-size:.9rem;outline:none;font-family:inherit;
           min-height:44px;box-sizing:border-box;
         }
         .search-input:focus{border-color:${GREEN}66}
-        .search-input::placeholder{color:rgba(255,255,255,.25)}
+        .search-input::placeholder{color:var(--text-tertiary)}
 
         .back-mobile{ display:none }
 
         .conv-list{
           width:340px;flex-shrink:0;
-          border-right:1px solid rgba(255,255,255,.06);
+          border-right:1px solid var(--border-color);
           display:flex;flex-direction:column;
         }
         .thread-panel{
@@ -397,12 +397,12 @@ function MessagesInner() {
 
               <div className="scroll-hidden" style={{ flex: 1, overflowY: 'auto', padding: '0 .5rem' }}>
                 {inboxError && (
-                  <p style={{ color: '#fca5a5', fontSize: '.8rem', textAlign: 'center', padding: '1.5rem 1rem', lineHeight: 1.6 }}>
+                  <p style={{ color: '#f87171', fontSize: '.8rem', textAlign: 'center', padding: '1.5rem 1rem', lineHeight: 1.6 }}>
                     {inboxError}
                   </p>
                 )}
                 {!inboxError && conversations.length === 0 && (
-                  <p style={{ color: 'rgba(255,255,255,.3)', fontSize: '.85rem', textAlign: 'center', padding: '2rem 1rem' }}>
+                  <p style={{ color: 'var(--text-tertiary)', fontSize: '.85rem', textAlign: 'center', padding: '2rem 1rem' }}>
                     No conversations yet. Tap the pencil icon to message someone.
                   </p>
                 )}
@@ -420,7 +420,7 @@ function MessagesInner() {
                       </div>
                       <div style={{ overflow: 'hidden', flex: 1 }}>
                         <p style={{ fontSize: '.92rem', fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{info?.name || 'User'}</p>
-                        <p style={{ fontSize: '.78rem', color: 'rgba(255,255,255,.35)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        <p style={{ fontSize: '.78rem', color: 'var(--text-tertiary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                           {conv.lastMessage || 'Say hello'}
                         </p>
                       </div>
@@ -434,7 +434,7 @@ function MessagesInner() {
               <div style={{ padding: '1.5rem 1rem 1rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <button
                   onClick={() => setComposeOpen(false)}
-                  style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: '4px', minWidth: '44px', minHeight: '44px' }}
+                  style={{ background: 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', padding: '4px', minWidth: '44px', minHeight: '44px' }}
                   aria-label="Close"
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
@@ -450,15 +450,15 @@ function MessagesInner() {
                   autoFocus
                 />
                 {composeError && (
-                  <p style={{ color: '#fca5a5', fontSize: '.78rem', marginTop: '.5rem' }}>{composeError}</p>
+                  <p style={{ color: '#f87171', fontSize: '.78rem', marginTop: '.5rem' }}>{composeError}</p>
                 )}
               </div>
               <div className="scroll-hidden" style={{ flex: 1, overflowY: 'auto', padding: '0 .5rem' }}>
                 {!directoryLoaded && !composeError && (
-                  <p style={{ color: 'rgba(255,255,255,.3)', fontSize: '.85rem', textAlign: 'center', padding: '2rem 1rem' }}>Loading people...</p>
+                  <p style={{ color: 'var(--text-tertiary)', fontSize: '.85rem', textAlign: 'center', padding: '2rem 1rem' }}>Loading people...</p>
                 )}
                 {directoryLoaded && filteredDirectory.length === 0 && (
-                  <p style={{ color: 'rgba(255,255,255,.3)', fontSize: '.85rem', textAlign: 'center', padding: '2rem 1rem' }}>
+                  <p style={{ color: 'var(--text-tertiary)', fontSize: '.85rem', textAlign: 'center', padding: '2rem 1rem' }}>
                     {directory.length === 0 ? 'No other Merj users yet.' : 'No matches found.'}
                   </p>
                 )}
@@ -474,7 +474,7 @@ function MessagesInner() {
                     </div>
                     <div style={{ overflow: 'hidden' }}>
                       <p style={{ fontSize: '.92rem', fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{u.name}</p>
-                      <p style={{ fontSize: '.78rem', color: 'rgba(255,255,255,.35)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{u.email}</p>
+                      <p style={{ fontSize: '.78rem', color: 'var(--text-tertiary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{u.email}</p>
                     </div>
                   </div>
                 ))}
@@ -485,16 +485,16 @@ function MessagesInner() {
 
         <div className="thread-panel">
           {!activeId ? (
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,.3)', fontSize: '.9rem' }}>
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-tertiary)', fontSize: '.9rem' }}>
               Select a conversation or tap the pencil icon
             </div>
           ) : (
             <>
-              <div style={{ padding: '1.1rem 1.5rem', borderBottom: '1px solid rgba(255,255,255,.06)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ padding: '1.1rem 1.5rem', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <button
                   className="back-mobile"
                   onClick={() => { setActiveId(null); setFocusedThread(false) }}
-                  style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: '4px', minWidth: '44px', minHeight: '44px' }}
+                  style={{ background: 'none', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', padding: '4px', minWidth: '44px', minHeight: '44px' }}
                   aria-label="Back to conversations"
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
@@ -520,12 +520,14 @@ function MessagesInner() {
                     <div key={msg.id} style={{ display: 'flex', justifyContent: mine ? 'flex-end' : 'flex-start' }}>
                       <div style={{
                         maxWidth: '70%', padding: msg.type ? '6px' : '.65rem 1rem', borderRadius: '16px',
-                        background: mine ? GREEN : 'rgba(255,255,255,.06)',
-                        color: mine ? '#000' : '#fff',
+                        background: mine ? GREEN : 'var(--bg-card)',
+                        color: mine ? '#000' : 'var(--text-primary)',
+                        border: mine ? 'none' : '1px solid var(--border-color)',
                         fontSize: '.9rem', lineHeight: 1.5,
                         borderBottomRightRadius: mine ? '4px' : '16px',
                         borderBottomLeftRadius: mine ? '16px' : '4px',
                         overflow: 'hidden',
+                        boxSizing: 'border-box',
                       }}>
                         {msg.type === 'image' && msg.mediaUrl && (
                           <img src={msg.mediaUrl} alt="" style={{ maxWidth: '260px', width: '100%', display: 'block', borderRadius: '12px' }} />
@@ -546,10 +548,10 @@ function MessagesInner() {
               </div>
 
               {error && (
-                <p style={{ color: '#fca5a5', fontSize: '.8rem', padding: '0 1.5rem' }}>{error}</p>
+                <p style={{ color: '#f87171', fontSize: '.8rem', padding: '0 1.5rem' }}>{error}</p>
               )}
 
-              <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid rgba(255,255,255,.06)', display: 'flex', gap: '.6rem', alignItems: 'center' }}>
+              <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid var(--border-color)', display: 'flex', gap: '.6rem', alignItems: 'center' }}>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -564,7 +566,7 @@ function MessagesInner() {
                   aria-label="Attach photo or video"
                 >
                   {uploadingMedia ? (
-                    <div style={{ width: '14px', height: '14px', border: '2px solid rgba(255,255,255,.3)', borderTop: '2px solid #fff', borderRadius: '50%', animation: 'spin .8s linear infinite' }} />
+                    <div style={{ width: '14px', height: '14px', border: '2px solid var(--border-color-strong)', borderTop: '2px solid var(--text-primary)', borderRadius: '50%', animation: 'spin .8s linear infinite' }} />
                   ) : (
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
                   )}
@@ -591,7 +593,7 @@ function MessagesInner() {
 export default function MessagesPage() {
   return (
     <Suspense fallback={
-      <div style={{ minHeight: '100dvh', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ minHeight: '100dvh', background: 'var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ width: '40px', height: '40px', border: `2px solid rgba(0,230,118,.2)`, borderTop: `2px solid ${GREEN}`, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
         <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       </div>
