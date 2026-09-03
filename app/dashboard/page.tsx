@@ -41,7 +41,7 @@ export default function DashboardPage() {
           emailVerified: !!user.emailVerified,
           hasPhoto: !!data.photo,
           hasBio: !!(data.bio && data.bio.trim().length > 0),
-          hasListing: false, // wired up once listings exist
+          hasListing: false, // wired up once we can query the user's own listings
         })
       } catch {
         setChecklist(prev => ({ ...prev, emailVerified: !!user.emailVerified }))
@@ -52,7 +52,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#000' }}>
+      <div style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)' }}>
         <div style={{ width: '40px', height: '40px', border: `2px solid rgba(0,230,118,.2)`, borderTop: `2px solid ${GREEN}`, borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
         <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       </div>
@@ -178,7 +178,7 @@ export default function DashboardPage() {
           </p>
           <div className="feed-card" style={{ textAlign: 'center', padding: '2.5rem 1.5rem' }}>
             <p style={{ color: 'var(--text-secondary)', fontSize: '.9rem', marginBottom: '.4rem' }}>No activity yet</p>
-            <p style={{ color: 'var(--text-tertiary)', fontSize: '.8rem' }}>Listings and offers will show up here once the marketplace launches.</p>
+            <p style={{ color: 'var(--text-tertiary)', fontSize: '.8rem' }}>Offers and sales on your listings will show up here.</p>
           </div>
         </div>
       </main>
@@ -202,7 +202,7 @@ export default function DashboardPage() {
           <p style={{ fontSize: '.78rem', fontWeight: '700', letterSpacing: '.05em', textTransform: 'uppercase', color: 'var(--text-tertiary)', marginBottom: '1rem' }}>
             Coming soon
           </p>
-          {['Marketplace listings', 'Selling flow'].map(item => (
+          {['Secure checkout & escrow', 'Offers & negotiation'].map(item => (
             <div key={item} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '.4rem 0', fontSize: '.85rem', color: 'var(--text-secondary)' }}>
               <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: 'rgba(0,230,118,.5)' }} />
               {item}
