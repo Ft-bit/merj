@@ -6,6 +6,7 @@ import { useAuth } from '../../context/AuthContext'
 import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore'
 import { db } from '../../lib/firebase'
 import Sidebar from '../../components/Sidebar'
+import { Sparkles, Globe, Share2, ShoppingBag, HardDrive, LucideIcon } from 'lucide-react'
 
 const GREEN = '#00e676'
 
@@ -23,12 +24,18 @@ interface Listing {
   createdAt: any
 }
 
-const CATEGORIES = [
-  { value: 'all', label: 'All', icon: '✨' },
-  { value: 'website', label: 'Websites', icon: '🌐' },
-  { value: 'social', label: 'Social Accounts', icon: '📱' },
-  { value: 'store', label: 'Stores', icon: '🛍️' },
-  { value: 'other', label: 'Other', icon: '💾' },
+interface Category {
+  value: string
+  label: string
+  icon: LucideIcon
+}
+
+const CATEGORIES: Category[] = [
+  { value: 'all', label: 'All', icon: Sparkles },
+  { value: 'website', label: 'Websites', icon: Globe },
+  { value: 'social', label: 'Social Accounts', icon: Share2 },
+  { value: 'store', label: 'Stores', icon: ShoppingBag },
+  { value: 'other', label: 'Other', icon: HardDrive },
 ]
 
 export default function ListingsPage() {
@@ -147,11 +154,14 @@ export default function ListingsPage() {
         />
 
         <div className="chip-scroll" style={{ display: 'flex', gap: '.6rem', overflowX: 'auto', marginBottom: '2rem', paddingBottom: '.25rem' }}>
-          {CATEGORIES.map(c => (
-            <button key={c.value} className={`cat-chip${category === c.value ? ' active' : ''}`} onClick={() => setCategory(c.value)}>
-              <span>{c.icon}</span> {c.label}
-            </button>
-          ))}
+          {CATEGORIES.map(c => {
+            const Icon = c.icon
+            return (
+              <button key={c.value} className={`cat-chip${category === c.value ? ' active' : ''}`} onClick={() => setCategory(c.value)}>
+                <Icon size={15} /> {c.label}
+              </button>
+            )
+          })}
         </div>
 
         {fetchError && (
@@ -171,25 +181,28 @@ export default function ListingsPage() {
 
         {filtered.length > 0 && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1.1rem' }}>
-            {filtered.map(listing => (
-              <div key={listing.id} className="listing-card" onClick={() => router.push(`/listings/${listing.id}`)}>
-                <div style={{ aspectRatio: '4/3', background: 'var(--bg-input)', position: 'relative', overflow: 'hidden' }}>
-                  {listing.images?.[0] ? (
-                    <img src={listing.images[0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                  ) : (
-                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem' }}>
-                      {CATEGORIES.find(c => c.value === listing.category)?.icon || '💾'}
-                    </div>
-                  )}
+            {filtered.map(listing => {
+              const CategoryIcon = CATEGORIES.find(c => c.value === listing.category)?.icon || HardDrive
+              return (
+                <div key={listing.id} className="listing-card" onClick={() => router.push(`/listings/${listing.id}`)}>
+                  <div style={{ aspectRatio: '4/3', background: 'var(--bg-input)', position: 'relative', overflow: 'hidden' }}>
+                    {listing.images?.[0] ? (
+                      <img src={listing.images[0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                    ) : (
+                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-tertiary)' }}>
+                        <CategoryIcon size={32} strokeWidth={1.5} />
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ padding: '1rem' }}>
+                    <p style={{ fontSize: '.92rem', fontWeight: '700', marginBottom: '.35rem', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                      {listing.title}
+                    </p>
+                    <p style={{ fontSize: '1.05rem', fontWeight: '800', color: GREEN }}>${listing.price.toLocaleString()}</p>
+                  </div>
                 </div>
-                <div style={{ padding: '1rem' }}>
-                  <p style={{ fontSize: '.92rem', fontWeight: '700', marginBottom: '.35rem', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
-                    {listing.title}
-                  </p>
-                  <p style={{ fontSize: '1.05rem', fontWeight: '800', color: GREEN }}>${listing.price.toLocaleString()}</p>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </main>
