@@ -16,6 +16,19 @@ interface NavItem {
   enabled: boolean
 }
 
+function MerjMark({ size = 28 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 32 32" style={{ flexShrink: 0, display: 'block' }}>
+      <rect width="32" height="32" rx="7" fill={GREEN} />
+      <path d="M 9 22 L 9 11 L 16 16.5 L 23 11 L 23 22"
+        fill="none" stroke="#000" strokeWidth="3.2"
+        strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="16" cy="18.3" r="1.7" fill={GREEN} />
+      <circle cx="16" cy="18.3" r="1.7" fill="none" stroke="#000" strokeWidth="1" />
+    </svg>
+  )
+}
+
 function IconHome() {
   return <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/></svg>
 }
@@ -43,7 +56,7 @@ function IconClose() {
 
 const navItems: NavItem[] = [
   { label: 'Home', path: '/dashboard', icon: <IconHome />, enabled: true },
-  { label: 'Marketplace', path: '/listings', icon: <IconMarketplace />, enabled: false },
+  { label: 'Marketplace', path: '/listings', icon: <IconMarketplace />, enabled: true },
   { label: 'Messages', path: '/messages', icon: <IconMessages />, enabled: true },
   { label: 'Notifications', path: '/notifications', icon: <IconBell />, enabled: true },
   { label: 'Profile', path: '/profile', icon: <IconUser />, enabled: true },
@@ -187,7 +200,7 @@ export default function Sidebar() {
 
       <div className="mobile-topbar">
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }} onClick={() => router.push('/dashboard')}>
-          <div style={{ width: '26px', height: '26px', background: GREEN, borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900', fontSize: '13px', color: '#000' }}>M</div>
+          <MerjMark size={26} />
           <span style={{ fontWeight: '800', fontSize: '1.02rem', color: 'var(--text-primary)', letterSpacing: '-.02em' }}>Merj</span>
         </div>
         <button
@@ -210,7 +223,7 @@ export default function Sidebar() {
           <div className="drawer-panel">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
-                <div style={{ width: '26px', height: '26px', background: GREEN, borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900', fontSize: '13px', color: '#000' }}>M</div>
+                <MerjMark size={26} />
                 <span style={{ fontWeight: '800', fontSize: '1.05rem', color: 'var(--text-primary)', letterSpacing: '-.02em' }}>Merj</span>
               </div>
               <button onClick={() => setDrawerOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '4px', minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} aria-label="Close menu">
@@ -270,7 +283,7 @@ export default function Sidebar() {
 
             <div className="sb-divider" />
 
-            <button className="sb-list-btn" onClick={() => { setDrawerOpen(false); showComingSoon('Selling') }} style={{ marginBottom: '.75rem', minHeight: '44px' }}>
+            <button className="sb-list-btn" onClick={() => { setDrawerOpen(false); router.push('/sell') }} style={{ marginBottom: '.75rem', minHeight: '44px' }}>
               List an asset
             </button>
             <button
@@ -294,7 +307,7 @@ export default function Sidebar() {
           style={{ display: 'flex', alignItems: 'center', gap: '9px', padding: '.5rem 1rem 1.75rem', cursor: 'pointer' }}
           onClick={() => router.push('/')}
         >
-          <div style={{ width: '30px', height: '30px', background: GREEN, borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900', fontSize: '15px', color: '#000' }}>M</div>
+          <MerjMark size={30} />
           <span style={{ fontWeight: '800', fontSize: '1.2rem', color: 'var(--text-primary)', letterSpacing: '-.03em' }}>Merj</span>
         </div>
 
@@ -320,7 +333,7 @@ export default function Sidebar() {
 
           <div className="sb-divider" />
 
-          <button className="sb-list-btn" onClick={() => showComingSoon('Selling')}>
+          <button className="sb-list-btn" onClick={() => router.push('/sell')}>
             List an asset
           </button>
 
@@ -398,7 +411,7 @@ export default function Sidebar() {
           Profile
         </button>
 
-        <button className="mnav-plus" onClick={() => showComingSoon('Selling')} aria-label="List an asset">
+        <button className="mnav-plus" onClick={() => router.push('/sell')} aria-label="List an asset">
           <IconSell />
         </button>
 
