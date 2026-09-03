@@ -6,7 +6,6 @@ import { useAuth } from '../../context/AuthContext'
 import { collection, query, where, orderBy, onSnapshot } from 'firebase/firestore'
 import { db } from '../../lib/firebase'
 import Sidebar from '../../components/Sidebar'
-import { Sparkles, Globe, Share2, ShoppingBag, HardDrive, LucideIcon } from 'lucide-react'
 
 const GREEN = '#00e676'
 
@@ -24,18 +23,67 @@ interface Listing {
   createdAt: any
 }
 
+// Simple inline SVG icons — no external package needed
+function IconAll({ size = 15 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 3l1.9 5.8L20 11l-6.1 2.2L12 19l-1.9-5.8L4 11l6.1-2.2L12 3z" />
+    </svg>
+  )
+}
+function IconWebsite({ size = 15 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="2" y1="12" x2="22" y2="12" />
+      <path d="M12 2a15.3 15.3 0 0 1 0 20 15.3 15.3 0 0 1 0-20z" />
+    </svg>
+  )
+}
+function IconSocial({ size = 15 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="18" cy="5" r="3" />
+      <circle cx="6" cy="12" r="3" />
+      <circle cx="18" cy="19" r="3" />
+      <line x1="8.6" y1="10.5" x2="15.4" y2="6.5" />
+      <line x1="8.6" y1="13.5" x2="15.4" y2="17.5" />
+    </svg>
+  )
+}
+function IconStore({ size = 15 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 9l1.5-5h15L21 9" />
+      <path d="M3 9a2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0" />
+      <path d="M5 9v10h14V9" />
+    </svg>
+  )
+}
+function IconOther({ size = 15 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="4" y="4" width="16" height="16" rx="2" />
+      <line x1="4" y1="10" x2="20" y2="10" />
+      <circle cx="8" cy="7" r="0.6" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
+type IconComponent = (props: { size?: number }) => JSX.Element
+
 interface Category {
   value: string
   label: string
-  icon: LucideIcon
+  Icon: IconComponent
 }
 
 const CATEGORIES: Category[] = [
-  { value: 'all', label: 'All', icon: Sparkles },
-  { value: 'website', label: 'Websites', icon: Globe },
-  { value: 'social', label: 'Social Accounts', icon: Share2 },
-  { value: 'store', label: 'Stores', icon: ShoppingBag },
-  { value: 'other', label: 'Other', icon: HardDrive },
+  { value: 'all', label: 'All', Icon: IconAll },
+  { value: 'website', label: 'Websites', Icon: IconWebsite },
+  { value: 'social', label: 'Social Accounts', Icon: IconSocial },
+  { value: 'store', label: 'Stores', Icon: IconStore },
+  { value: 'other', label: 'Other', Icon: IconOther },
 ]
 
 export default function ListingsPage() {
@@ -154,14 +202,11 @@ export default function ListingsPage() {
         />
 
         <div className="chip-scroll" style={{ display: 'flex', gap: '.6rem', overflowX: 'auto', marginBottom: '2rem', paddingBottom: '.25rem' }}>
-          {CATEGORIES.map(c => {
-            const Icon = c.icon
-            return (
-              <button key={c.value} className={`cat-chip${category === c.value ? ' active' : ''}`} onClick={() => setCategory(c.value)}>
-                <Icon size={15} /> {c.label}
-              </button>
-            )
-          })}
+          {CATEGORIES.map(c => (
+            <button key={c.value} className={`cat-chip${category === c.value ? ' active' : ''}`} onClick={() => setCategory(c.value)}>
+              <c.Icon size={15} /> {c.label}
+            </button>
+          ))}
         </div>
 
         {fetchError && (
@@ -182,7 +227,7 @@ export default function ListingsPage() {
         {filtered.length > 0 && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1.1rem' }}>
             {filtered.map(listing => {
-              const CategoryIcon = CATEGORIES.find(c => c.value === listing.category)?.icon || HardDrive
+              const CategoryIcon = CATEGORIES.find(c => c.value === listing.category)?.Icon || IconOther
               return (
                 <div key={listing.id} className="listing-card" onClick={() => router.push(`/listings/${listing.id}`)}>
                   <div style={{ aspectRatio: '4/3', background: 'var(--bg-input)', position: 'relative', overflow: 'hidden' }}>
@@ -190,7 +235,7 @@ export default function ListingsPage() {
                       <img src={listing.images[0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                     ) : (
                       <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-tertiary)' }}>
-                        <CategoryIcon size={32} strokeWidth={1.5} />
+                        <CategoryIcon size={32} />
                       </div>
                     )}
                   </div>
