@@ -137,14 +137,28 @@ export default function Sidebar() {
         .mobile-topbar{ display:none }
         .drawer-overlay{ display:none }
 
+        .topbar-bell{
+          position:relative;background:none;border:none;cursor:pointer;
+          color:var(--text-primary);padding:6px;border-radius:10px;
+          display:flex;align-items:center;justify-content:center;
+          min-width:44px;min-height:44px;box-sizing:border-box;
+        }
+        .topbar-bell:active{ background:var(--border-color) }
+        .topbar-bell-badge{
+          position:absolute;top:6px;right:7px;min-width:15px;height:15px;border-radius:100px;
+          background:${GREEN};color:#000;font-size:.6rem;font-weight:700;
+          display:flex;align-items:center;justify-content:center;padding:0 3px;
+          border:2px solid var(--bg-elevated);
+        }
+
         @media(max-width:900px){
           .app-sidebar{display:none!important}
 
           .mobile-topbar{
-            display:flex!important;
+            display:grid!important;
+            grid-template-columns:1fr auto 1fr;align-items:center;
             position:fixed;top:0;left:0;right:0;z-index:150;
-            align-items:center;justify-content:space-between;
-            padding:.85rem 1.1rem;
+            padding:.6rem 1.1rem;
             background:var(--bg-elevated);backdrop-filter:blur(16px);
             border-bottom:1px solid var(--border-color);
           }
@@ -199,14 +213,26 @@ export default function Sidebar() {
       `}</style>
 
       <div className="mobile-topbar">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }} onClick={() => router.push('/dashboard')}>
-          <MerjMark size={26} />
-          <span style={{ fontWeight: '800', fontSize: '1.02rem', color: 'var(--text-primary)', letterSpacing: '-.02em' }}>Merj</span>
+        <button
+          className="topbar-bell"
+          style={{ justifySelf: 'start' }}
+          onClick={() => router.push('/notifications')}
+          aria-label="Notifications"
+        >
+          <IconBell />
+          {unreadCount > 0 && (
+            <span className="topbar-bell-badge">{unreadCount > 9 ? '9+' : unreadCount}</span>
+          )}
+        </button>
+
+        <div style={{ justifySelf: 'center', cursor: 'pointer' }} onClick={() => router.push('/dashboard')}>
+          <MerjMark size={28} />
         </div>
+
         <button
           className="avatar-btn"
+          style={{ justifySelf: 'end', width: '36px', height: '36px', minWidth: '36px', minHeight: '36px', borderRadius: '50%', background: 'rgba(0,230,118,.15)', fontSize: '.8rem', fontWeight: '700', color: GREEN }}
           onClick={() => setDrawerOpen(true)}
-          style={{ width: '36px', height: '36px', minWidth: '36px', minHeight: '36px', borderRadius: '50%', background: 'rgba(0,230,118,.15)', fontSize: '.8rem', fontWeight: '700', color: GREEN }}
           aria-label="Open menu"
         >
           {selfInfo.photo ? (
@@ -384,17 +410,11 @@ export default function Sidebar() {
           Home
         </button>
         <button
-          className={`mnav-item${pathname === '/notifications' ? ' active' : ''}`}
-          onClick={() => router.push('/notifications')}
-          style={{ position: 'relative' }}
+          className={`mnav-item${pathname === '/listings' ? ' active' : ''}`}
+          onClick={() => router.push('/listings')}
         >
-          <IconBell />
-          Alerts
-          {unreadCount > 0 && (
-            <span style={{ position: 'absolute', top: '0px', right: '10px', fontSize: '.6rem', fontWeight: '700', color: '#000', background: GREEN, minWidth: '15px', height: '15px', borderRadius: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 3px', border: '2px solid var(--bg-elevated)' }}>
-              {unreadCount > 9 ? '9+' : unreadCount}
-            </span>
-          )}
+          <IconMarketplace />
+          Marketplace
         </button>
         <button
           className={`mnav-item${pathname === '/messages' ? ' active' : ''}`}
