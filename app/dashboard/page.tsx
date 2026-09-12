@@ -171,6 +171,36 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '.85rem', marginBottom: '2rem' }}>
+          <div className="action-tile" onClick={() => router.push('/listings')}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={GREEN} strokeWidth="2" style={{ display: 'block', marginBottom: '.6rem' }}>
+              <path d="M3 3h18l-1.5 6h-15z" />
+              <path d="M5 9v10a1 1 0 001 1h12a1 1 0 001-1V9" />
+              <path d="M9 21v-6h6v6" />
+            </svg>
+            <p style={{ fontWeight: '700', fontSize: '.9rem', marginBottom: '.2rem' }}>Browse marketplace</p>
+            <p style={{ color: 'var(--text-tertiary)', fontSize: '.8rem', lineHeight: 1.4 }}>Websites, accounts, stores</p>
+          </div>
+          <div className="action-tile" onClick={() => router.push('/sell')}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={GREEN} strokeWidth="2" style={{ display: 'block', marginBottom: '.6rem' }}>
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 8v8M8 12h8" />
+            </svg>
+            <p style={{ fontWeight: '700', fontSize: '.9rem', marginBottom: '.2rem' }}>List an asset</p>
+            <p style={{ color: 'var(--text-tertiary)', fontSize: '.8rem', lineHeight: 1.4 }}>Free to list, pay on sale</p>
+          </div>
+        </div>
+
+        <div style={{ borderBottom: !checking ? '1px solid var(--border-color)' : 'none', paddingBottom: !checking ? '1.5rem' : 0, marginBottom: !checking ? '1.5rem' : 0 }}>
+          <p style={{ fontSize: '.78rem', fontWeight: '700', letterSpacing: '.05em', textTransform: 'uppercase', color: 'var(--text-tertiary)', marginBottom: '1rem' }}>
+            Recent activity
+          </p>
+          <div className="feed-card" style={{ textAlign: 'center', padding: '2.5rem 1.5rem' }}>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '.9rem', marginBottom: '.4rem' }}>No activity yet</p>
+            <p style={{ color: 'var(--text-tertiary)', fontSize: '.8rem' }}>Offers and sales on your listings will show up here.</p>
+          </div>
+        </div>
+
         {!checking && !allDone && (
           <div className="feed-card" style={{ marginBottom: '1.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '1rem' }}>
@@ -214,36 +244,6 @@ export default function DashboardPage() {
             </div>
           </div>
         )}
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '.85rem', marginBottom: '2rem' }}>
-          <div className="action-tile" onClick={() => router.push('/listings')}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={GREEN} strokeWidth="2" style={{ display: 'block', marginBottom: '.6rem' }}>
-              <path d="M3 3h18l-1.5 6h-15z" />
-              <path d="M5 9v10a1 1 0 001 1h12a1 1 0 001-1V9" />
-              <path d="M9 21v-6h6v6" />
-            </svg>
-            <p style={{ fontWeight: '700', fontSize: '.9rem', marginBottom: '.2rem' }}>Browse marketplace</p>
-            <p style={{ color: 'var(--text-tertiary)', fontSize: '.8rem', lineHeight: 1.4 }}>Websites, accounts, stores</p>
-          </div>
-          <div className="action-tile" onClick={() => router.push('/sell')}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={GREEN} strokeWidth="2" style={{ display: 'block', marginBottom: '.6rem' }}>
-              <circle cx="12" cy="12" r="9" />
-              <path d="M12 8v8M8 12h8" />
-            </svg>
-            <p style={{ fontWeight: '700', fontSize: '.9rem', marginBottom: '.2rem' }}>List an asset</p>
-            <p style={{ color: 'var(--text-tertiary)', fontSize: '.8rem', lineHeight: 1.4 }}>Free to list, pay on sale</p>
-          </div>
-        </div>
-
-        <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
-          <p style={{ fontSize: '.78rem', fontWeight: '700', letterSpacing: '.05em', textTransform: 'uppercase', color: 'var(--text-tertiary)', marginBottom: '1rem' }}>
-            Recent activity
-          </p>
-          <div className="feed-card" style={{ textAlign: 'center', padding: '2.5rem 1.5rem' }}>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '.9rem', marginBottom: '.4rem' }}>No activity yet</p>
-            <p style={{ color: 'var(--text-tertiary)', fontSize: '.8rem' }}>Offers and sales on your listings will show up here.</p>
-          </div>
-        </div>
       </main>
 
       <aside className="right-rail" style={{ width: '300px', flexShrink: 0, padding: '2rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
