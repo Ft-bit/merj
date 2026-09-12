@@ -33,6 +33,8 @@ export default function DashboardPage() {
   const [balanceCents, setBalanceCents] = useState(0)
   const [balanceVisible, setBalanceVisible] = useState(true)
   const [unreadCount, setUnreadCount] = useState(0)
+  const [myPhoto, setMyPhoto] = useState('')
+  const [myName, setMyName] = useState('')
 
   useEffect(() => {
     if (!loading && (!user || !user.emailVerified)) router.push('/login')
@@ -63,6 +65,18 @@ export default function DashboardPage() {
     const q = query(collection(db, 'notifications'), where('userId', '==', user.uid))
     const unsub = onSnapshot(q, snap => {
       setUnreadCount(snap.docs.filter(d => !d.data().read).length)
+    })
+    return () => unsub()
+  }, [user])
+
+  useEffect(() => {
+    if (!user) return
+    const unsub = onSnapshot(doc(db, 'users', user.uid), snap => {
+      if (snap.exists()) {
+        const d = snap.data()
+        setMyPhoto(d.photo || '')
+        setMyName(d.name || user.displayName || 'User')
+      }
     })
     return () => unsub()
   }, [user])
@@ -129,6 +143,12 @@ export default function DashboardPage() {
         .bell-btn:hover{ background:rgba(255,255,255,.05) }
         .bell-badge{ position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;background:${GREEN} }
 
+        .top-avatar{
+          width:32px;height:32px;border-radius:50%;background:rgba(0,230,118,.15);
+          display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;
+          font-size:.8rem;font-weight:700;color:${GREEN};flex-shrink:0;border:none;padding:0;
+        }
+
         .balance-card{
           background:#0d1f14;border:1px solid rgba(0,230,118,.25);border-radius:18px;padding:1.5rem;
         }
@@ -141,14 +161,14 @@ export default function DashboardPage() {
         .balance-action-btn:hover{ transform:translateY(-1px) }
         .balance-action-btn.ghost{ background:rgba(255,255,255,.08);color:#fff }
 
-        @media(max-width:900px){ .right-rail{display:none!important} .feed-main{padding-top:4.5rem!important} }
-        @media(max-width:600px){ .feed-main{padding:1rem!important;padding-top:4.5rem!important;padding-bottom:6rem!important} }
+        @media(max-width:900px){ .right-rail{display:none!important} .feed-main{padding-top:4.5rem!important;padding-bottom:7rem!important} }
+        @media(max-width:600px){ .feed-main{padding:1rem!important;padding-top:4.5rem!important;padding-bottom:7rem!important} }
       `}</style>
 
       <Sidebar />
 
       <main className="feed-main" style={{ flex: 1, padding: '2rem', maxWidth: '640px', margin: '0 auto', animation: 'fadeUp .4s ease' }}>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '8px', marginBottom: '.5rem' }}>
           <button className="bell-btn" onClick={() => router.push('/notifications')} aria-label="Notifications">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" strokeWidth="2"
               style={unreadCount > 0 ? { animation: 'bellRing .5s ease' } : undefined}>
@@ -156,6 +176,13 @@ export default function DashboardPage() {
               <path d="M13.73 21a2 2 0 0 1-3.46 0" />
             </svg>
             {unreadCount > 0 && <span className="bell-badge" />}
+          </button>
+          <button className="top-avatar" onClick={() => router.push('/profile')} aria-label="Your profile">
+            {myPhoto ? (
+              <img src={myPhoto} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+            ) : (
+              (myName || user.displayName || user.email || 'U')[0].toUpperCase()
+            )}
           </button>
         </div>
 
@@ -243,12 +270,19 @@ export default function DashboardPage() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '.85rem', marginBottom: '2rem' }}>
           <div className="action-tile" onClick={() => router.push('/listings')}>
-            <div style={{ fontSize: '1.5rem', marginBottom: '.6rem' }}>🛒</div>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={GREEN} strokeWidth="2" style={{ display: 'block', marginBottom: '.6rem' }}>
+              <path d="M3 3h18l-1.5 6h-15z" />
+              <path d="M5 9v10a1 1 0 001 1h12a1 1 0 001-1V9" />
+              <path d="M9 21v-6h6v6" />
+            </svg>
             <p style={{ fontWeight: '700', fontSize: '.9rem', marginBottom: '.2rem' }}>Browse marketplace</p>
             <p style={{ color: 'var(--text-tertiary)', fontSize: '.8rem', lineHeight: 1.4 }}>Websites, accounts, stores</p>
           </div>
           <div className="action-tile" onClick={() => router.push('/sell')}>
-            <div style={{ fontSize: '1.5rem', marginBottom: '.6rem' }}>💰</div>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={GREEN} strokeWidth="2" style={{ display: 'block', marginBottom: '.6rem' }}>
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 8v8M8 12h8" />
+            </svg>
             <p style={{ fontWeight: '700', fontSize: '.9rem', marginBottom: '.2rem' }}>List an asset</p>
             <p style={{ color: 'var(--text-tertiary)', fontSize: '.8rem', lineHeight: 1.4 }}>Free to list, pay on sale</p>
           </div>
