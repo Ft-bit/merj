@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../context/AuthContext'
-import { doc, getDoc, collection, query, where, onSnapshot } from 'firebase/firestore'
+import { doc, getDoc } from 'firebase/firestore'
 import { db } from '../../lib/firebase'
 import Sidebar from '../../components/Sidebar'
 
@@ -32,9 +32,6 @@ export default function DashboardPage() {
   })
   const [balanceCents, setBalanceCents] = useState(0)
   const [balanceVisible, setBalanceVisible] = useState(true)
-  const [unreadCount, setUnreadCount] = useState(0)
-  const [myPhoto, setMyPhoto] = useState('')
-  const [myName, setMyName] = useState('')
 
   useEffect(() => {
     if (!loading && (!user || !user.emailVerified)) router.push('/login')
@@ -58,27 +55,6 @@ export default function DashboardPage() {
       }
       setChecking(false)
     })()
-  }, [user])
-
-  useEffect(() => {
-    if (!user) return
-    const q = query(collection(db, 'notifications'), where('userId', '==', user.uid))
-    const unsub = onSnapshot(q, snap => {
-      setUnreadCount(snap.docs.filter(d => !d.data().read).length)
-    })
-    return () => unsub()
-  }, [user])
-
-  useEffect(() => {
-    if (!user) return
-    const unsub = onSnapshot(doc(db, 'users', user.uid), snap => {
-      if (snap.exists()) {
-        const d = snap.data()
-        setMyPhoto(d.photo || '')
-        setMyName(d.name || user.displayName || 'User')
-      }
-    })
-    return () => unsub()
   }, [user])
 
   const handleWithdraw = () => {
@@ -112,7 +88,6 @@ export default function DashboardPage() {
         *{box-sizing:border-box}
         @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
         @keyframes checkPop{0%{transform:scale(0)}70%{transform:scale(1.15)}100%{transform:scale(1)}}
-        @keyframes bellRing{0%,100%{transform:rotate(0deg)}20%{transform:rotate(-12deg)}40%{transform:rotate(10deg)}60%{transform:rotate(-8deg)}80%{transform:rotate(6deg)}}
 
         .feed-card{
           background:var(--bg-card);border:1px solid var(--border-color);border-radius:16px;
@@ -138,17 +113,6 @@ export default function DashboardPage() {
           padding:1.25rem;
         }
 
-        .bell-btn{ position:relative;background:none;border:none;cursor:pointer;padding:8px;border-radius:10px;
-          display:flex;align-items:center;justify-content:center;transition:background .15s }
-        .bell-btn:hover{ background:rgba(255,255,255,.05) }
-        .bell-badge{ position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;background:${GREEN} }
-
-        .top-avatar{
-          width:32px;height:32px;border-radius:50%;background:rgba(0,230,118,.15);
-          display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;
-          font-size:.8rem;font-weight:700;color:${GREEN};flex-shrink:0;border:none;padding:0;
-        }
-
         .balance-card{
           background:#0d1f14;border:1px solid rgba(0,230,118,.25);border-radius:18px;padding:1.5rem;
         }
@@ -168,31 +132,9 @@ export default function DashboardPage() {
       <Sidebar />
 
       <main className="feed-main" style={{ flex: 1, padding: '2rem', maxWidth: '640px', margin: '0 auto', animation: 'fadeUp .4s ease' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', marginBottom: '1.5rem' }}>
-          <button className="bell-btn" style={{ justifySelf: 'start' }} onClick={() => router.push('/notifications')} aria-label="Notifications">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" strokeWidth="2"
-              style={unreadCount > 0 ? { animation: 'bellRing .5s ease' } : undefined}>
-              <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
-              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-            </svg>
-            {unreadCount > 0 && <span className="bell-badge" />}
-          </button>
-
-          <div style={{ justifySelf: 'center', width: '32px', height: '32px', background: GREEN, borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900', fontSize: '16px', color: '#000' }}>
-            M
-          </div>
-
-          <button className="top-avatar" style={{ justifySelf: 'end' }} onClick={() => router.push('/profile')} aria-label="Your profile">
-            {myPhoto ? (
-              <img src={myPhoto} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-            ) : (
-              (myName || user.displayName || user.email || 'U')[0].toUpperCase()
-            )}
-          </button>
-        </div>
-
         <div style={{ marginBottom: '2rem' }}>
           <p style={{ color: 'var(--text-tertiary)', fontSize: '.85rem', marginBottom: '.25rem' }}>Welcome back</p>
+
           <h1 style={{ fontSize: '1.6rem', fontWeight: '800', letterSpacing: '-.03em' }}>
             {user.displayName || user.email?.split('@')[0] || 'User'}
           </h1>
