@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../context/AuthContext'
 import { doc, getDoc } from 'firebase/firestore'
@@ -32,6 +32,17 @@ export default function DashboardPage() {
   })
   const [balanceCents, setBalanceCents] = useState(0)
   const [balanceVisible, setBalanceVisible] = useState(true)
+  const [stepIndex, setStepIndex] = useState(0)
+  const stepIndexInitRef = useRef(false)
+
+  useEffect(() => {
+    if (!checking && !stepIndexInitRef.current) {
+      stepIndexInitRef.current = true
+      const order = [checklist.emailVerified, checklist.hasPhoto, checklist.hasBio, checklist.hasListing]
+      const firstIncomplete = order.findIndex(v => !v)
+      setStepIndex(firstIncomplete === -1 ? 0 : firstIncomplete)
+    }
+  }, [checking, checklist])
 
   useEffect(() => {
     if (!loading && (!user || !user.emailVerified)) router.push('/login')
@@ -95,13 +106,14 @@ export default function DashboardPage() {
         }
         .feed-card:hover{border-color:rgba(0,230,118,.15)}
 
-        .checklist-row{
-          display:flex;align-items:center;gap:12px;padding:.9rem 0;
-          border-bottom:1px solid var(--border-color);min-height:44px;
+        .step-nav-btn{
+          width:32px;height:32px;border-radius:50%;flex-shrink:0;border:none;
+          background:var(--bg-input);color:var(--text-secondary);cursor:pointer;
+          display:flex;align-items:center;justify-content:center;transition:background .15s;
+          padding:0;
         }
-        .checklist-row:last-child{ border-bottom:none }
-        .checklist-row.clickable{ cursor:pointer }
-        .checklist-row.clickable:hover .checklist-label{ color:${GREEN} }
+        .step-nav-btn:hover:not(:disabled){ background:var(--border-color);color:var(--text-primary) }
+        .step-nav-btn:disabled{ opacity:.35;cursor:not-allowed }
 
         .action-tile{
           background:var(--bg-card);border:1px solid var(--border-color);border-radius:14px;
@@ -201,39 +213,79 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {!checking && !allDone && (
-          <div className="feed-card" style={{ marginBottom: '1.5rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '1rem' }}>
-              <p style={{ fontWeight: '700', fontSize: '.95rem' }}>Get your account set up</p>
-              <p style={{ fontSize: '.78rem', color: 'var(--text-tertiary)' }}>{completedCount}/{steps.length}</p>
-            </div>
-            <div style={{ height: '5px', background: 'var(--border-color)', borderRadius: '100px', overflow: 'hidden', marginBottom: '1.25rem' }}>
-              <div style={{ height: '100%', width: `${progressPct}%`, background: GREEN, borderRadius: '100px', transition: 'width .4s ease' }} />
-            </div>
-            {steps.map(step => (
-              <div
-                key={step.key}
-                className={`checklist-row${step.action && !step.done ? ' clickable' : ''}`}
-                onClick={() => { if (step.action && !step.done) step.action() }}
-              >
-                <div style={{
-                  width: '22px', height: '22px', borderRadius: '50%', flexShrink: 0,
-                  border: step.done ? 'none' : '2px solid var(--border-color-strong)',
-                  background: step.done ? GREEN : 'transparent',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  animation: step.done ? 'checkPop .3s ease' : 'none',
-                }}>
-                  {step.done && (
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="3"><path d="M20 6L9 17l-5-5"/></svg>
-                  )}
-                </div>
-                <span className="checklist-label" style={{ fontSize: '.9rem', color: step.done ? 'var(--text-tertiary)' : 'var(--text-primary)', textDecoration: step.done ? 'line-through' : 'none', transition: 'color .15s' }}>
-                  {step.label}
-                </span>
+        {!checking && !allDone && (() => {
+          const idx = Math.min(stepIndex, steps.length - 1)
+          const step = steps[idx]
+          const canAct = !!(step.action && !step.done)
+          return (
+            <div className="feed-card" style={{ marginBottom: '1.5rem', padding: '1.25rem 1.5rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '.75rem' }}>
+                <p style={{ fontWeight: '700', fontSize: '.9rem' }}>Get your account set up</p>
+                <p style={{ fontSize: '.75rem', color: 'var(--text-tertiary)' }}>{completedCount}/{steps.length}</p>
               </div>
-            ))}
-          </div>
-        )}
+              <div style={{ height: '4px', background: 'var(--border-color)', borderRadius: '100px', overflow: 'hidden', marginBottom: '1.1rem' }}>
+                <div style={{ height: '100%', width: `${progressPct}%`, background: GREEN, borderRadius: '100px', transition: 'width .4s ease' }} />
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '.6rem' }}>
+                <button
+                  className="step-nav-btn"
+                  onClick={() => setStepIndex(i => Math.max(0, i - 1))}
+                  disabled={idx === 0}
+                  aria-label="Previous step"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+
+                <div
+                  onClick={() => { if (canAct) step.action!() }}
+                  style={{
+                    flex: 1, display: 'flex', alignItems: 'center', gap: '12px',
+                    padding: '.7rem .9rem', borderRadius: '12px', background: 'var(--bg-input)',
+                    cursor: canAct ? 'pointer' : 'default', minHeight: '44px', boxSizing: 'border-box',
+                  }}
+                >
+                  <div style={{
+                    width: '24px', height: '24px', borderRadius: '50%', flexShrink: 0,
+                    border: step.done ? 'none' : '2px solid var(--border-color-strong)',
+                    background: step.done ? GREEN : 'transparent',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    {step.done && (
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="3"><path d="M20 6L9 17l-5-5"/></svg>
+                    )}
+                  </div>
+                  <span style={{ fontSize: '.92rem', fontWeight: '600', color: step.done ? 'var(--text-tertiary)' : 'var(--text-primary)', textDecoration: step.done ? 'line-through' : 'none' }}>
+                    {step.label}
+                  </span>
+                </div>
+
+                <button
+                  className="step-nav-btn"
+                  onClick={() => setStepIndex(i => Math.min(steps.length - 1, i + 1))}
+                  disabled={idx === steps.length - 1}
+                  aria-label="Next step"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', marginTop: '.9rem' }}>
+                {steps.map((s, i) => (
+                  <button
+                    key={s.key}
+                    onClick={() => setStepIndex(i)}
+                    aria-label={`Go to step ${i + 1}`}
+                    style={{
+                      width: '6px', height: '6px', borderRadius: '50%', border: 'none', padding: 0, cursor: 'pointer',
+                      background: i === idx ? GREEN : 'var(--border-color)', transition: 'background .15s',
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          )
+        })()}
 
         {!checking && allDone && (
           <div className="feed-card" style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
