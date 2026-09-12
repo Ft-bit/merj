@@ -86,7 +86,23 @@ export default function NotificationsPage() {
         // Non-critical — clicking through still works even if marking read fails.
       }
     }
-    if (n.link) router.push(n.link)
+    if (n.link) {
+      // Two different shapes can show up here:
+      // 1. Notifications created BY THE WEBSITE already use the right
+      //    shape: "/messages?open=abc123".
+      // 2. Notifications created by the NATIVE APP use "messages/abc123"
+      //    (no leading slash, no query param) — that shape works with
+      //    Expo Router but has no matching page on this site, so it 404s
+      //    if pushed as-is. Convert it to the query-param shape instead.
+      let target = n.link
+      const appShapeMatch = target.match(/^messages\/([^/?]+)/)
+      if (appShapeMatch) {
+        target = `/messages?open=${appShapeMatch[1]}`
+      } else if (!target.startsWith('/')) {
+        target = `/${target}`
+      }
+      router.push(target)
+    }
   }
 
   if (loading) {
