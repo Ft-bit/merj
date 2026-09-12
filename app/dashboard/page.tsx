@@ -168,8 +168,8 @@ export default function DashboardPage() {
       <Sidebar />
 
       <main className="feed-main" style={{ flex: 1, padding: '2rem', maxWidth: '640px', margin: '0 auto', animation: 'fadeUp .4s ease' }}>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '8px', marginBottom: '.5rem' }}>
-          <button className="bell-btn" onClick={() => router.push('/notifications')} aria-label="Notifications">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <button className="bell-btn" style={{ justifySelf: 'start' }} onClick={() => router.push('/notifications')} aria-label="Notifications">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" strokeWidth="2"
               style={unreadCount > 0 ? { animation: 'bellRing .5s ease' } : undefined}>
               <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
@@ -177,7 +177,12 @@ export default function DashboardPage() {
             </svg>
             {unreadCount > 0 && <span className="bell-badge" />}
           </button>
-          <button className="top-avatar" onClick={() => router.push('/profile')} aria-label="Your profile">
+
+          <div style={{ justifySelf: 'center', width: '32px', height: '32px', background: GREEN, borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900', fontSize: '16px', color: '#000' }}>
+            M
+          </div>
+
+          <button className="top-avatar" style={{ justifySelf: 'end' }} onClick={() => router.push('/profile')} aria-label="Your profile">
             {myPhoto ? (
               <img src={myPhoto} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
             ) : (
