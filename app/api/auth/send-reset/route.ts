@@ -13,8 +13,7 @@ export async function POST(req: Request) {
 
   try {
     const link = await adminAuth.generatePasswordResetLink(email, {
-      url: 'https://merj-seven.vercel.app/auth/action',
-      handleCodeInApp: true,
+      url: 'https://merj-seven.vercel.app/auth/action?type=reset',
     })
 
     await transporter.sendMail({
