@@ -5,8 +5,6 @@ import {
   signInWithPopup,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  sendEmailVerification,
-  sendPasswordResetEmail,
   updateProfile,
   reload,
   signOut,
@@ -45,6 +43,21 @@ async function ensureUserDoc(u: User) {
   }
 }
 
+// Both routes just take { email } and handle generating the Firebase Admin
+// link + sending it via our own branded email — see app/api/auth/send-verification
+// and app/api/auth/send-reset.
+async function sendCustomEmail(kind: 'verification' | 'reset', email: string) {
+  const res = await fetch(`/api/auth/send-${kind}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  })
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}))
+    throw new Error(data?.error || `Could not send ${kind} email.`)
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
@@ -72,7 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const registerWithEmail = async (email: string, password: string, name: string) => {
     const result = await createUserWithEmailAndPassword(auth, email, password)
     await updateProfile(result.user, { displayName: name })
-    await sendEmailVerification(result.user)
+    await sendCustomEmail('verification', email)
     await setDoc(doc(db, 'users', result.user.uid), {
       uid: result.user.uid,
       email,
@@ -84,7 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const resendVerification = async () => {
-    if (auth.currentUser) await sendEmailVerification(auth.currentUser)
+    if (auth.currentUser?.email) await sendCustomEmail('verification', auth.currentUser.email)
   }
 
   const checkVerification = async () => {
@@ -96,7 +109,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const resetPassword = async (email: string) => {
-    await sendPasswordResetEmail(auth, email)
+    await sendCustomEmail('reset', email)
   }
 
   const logout = async () => signOut(auth)
