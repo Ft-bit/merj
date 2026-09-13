@@ -9,8 +9,13 @@ const GREEN = '#00e676'
 
 function AuthActionInner() {
   const params = useSearchParams()
-  const mode = params.get('mode')
+  const modeParam = params.get('mode')
   const oobCode = params.get('oobCode')
+  // Set by our own API routes on the continueUrl (?type=verify / ?type=reset),
+  // since Firebase's own hosted page strips mode/oobCode before handing off
+  // to this "Continue" link — this is how we know which action just
+  // completed even though we didn't get to process the code ourselves.
+  const typeParam = params.get('type')
 
   const [status, setStatus] = useState<'working' | 'success' | 'error' | 'ready-to-reset'>('working')
   const [errorMsg, setErrorMsg] = useState('')
@@ -18,21 +23,39 @@ function AuthActionInner() {
   const [newPassword, setNewPassword] = useState('')
   const [confirming, setConfirming] = useState(false)
 
+  // Used for rendering: when we have a real oobCode, this reflects what
+  // Firebase told us via `mode`. When we're on the codeless "continue" leg
+  // (Firebase's own page already did the work), we fall back to whichever
+  // type our own link was tagged with.
+  const effectiveMode = oobCode
+    ? modeParam
+    : typeParam === 'verify'
+      ? 'verifyEmail'
+      : typeParam === 'reset'
+        ? 'resetPassword'
+        : null
+
   useEffect(() => {
     if (!oobCode) {
-      setStatus('error')
-      setErrorMsg('Missing verification code. This link looks incomplete.')
+      if (typeParam === 'verify' || typeParam === 'reset') {
+        // Firebase's own default page already completed the action before
+        // handing off to us — nothing left to do but show success.
+        setStatus('success')
+      } else {
+        setStatus('error')
+        setErrorMsg('Missing verification code. This link looks incomplete.')
+      }
       return
     }
 
-    if (mode === 'verifyEmail') {
+    if (modeParam === 'verifyEmail') {
       applyActionCode(auth, oobCode)
         .then(() => setStatus('success'))
         .catch(() => {
           setStatus('error')
           setErrorMsg('This link is invalid or has expired. Request a new one from the app.')
         })
-    } else if (mode === 'resetPassword') {
+    } else if (modeParam === 'resetPassword') {
       verifyPasswordResetCode(auth, oobCode)
         .then(em => {
           setEmail(em)
@@ -46,7 +69,7 @@ function AuthActionInner() {
       setStatus('error')
       setErrorMsg('Unknown request type.')
     }
-  }, [mode, oobCode])
+  }, [modeParam, oobCode, typeParam])
 
   const handleReset = async () => {
     if (newPassword.length < 6) {
@@ -84,7 +107,7 @@ function AuthActionInner() {
           </>
         )}
 
-        {status === 'success' && mode === 'verifyEmail' && (
+        {status === 'success' && effectiveMode === 'verifyEmail' && (
           <>
             <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>✅</div>
             <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '.5rem' }}>Email verified!</h2>
@@ -119,7 +142,7 @@ function AuthActionInner() {
           </>
         )}
 
-        {status === 'success' && mode === 'resetPassword' && (
+        {status === 'success' && effectiveMode === 'resetPassword' && (
           <>
             <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>✅</div>
             <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '.5rem' }}>Password updated</h2>
