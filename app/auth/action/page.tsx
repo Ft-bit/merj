@@ -7,14 +7,20 @@ import { auth } from '../../../lib/firebase'
 
 const GREEN = '#00e676'
 
+function CheckBadge() {
+  return (
+    <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'rgba(0,230,118,.12)', border: '2px solid rgba(0,230,118,.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={GREEN} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20 6L9 17l-5-5" />
+      </svg>
+    </div>
+  )
+}
+
 function AuthActionInner() {
   const params = useSearchParams()
   const modeParam = params.get('mode')
   const oobCode = params.get('oobCode')
-  // Set by our own API routes on the continueUrl (?type=verify / ?type=reset),
-  // since Firebase's own hosted page strips mode/oobCode before handing off
-  // to this "Continue" link — this is how we know which action just
-  // completed even though we didn't get to process the code ourselves.
   const typeParam = params.get('type')
 
   const [status, setStatus] = useState<'working' | 'success' | 'error' | 'ready-to-reset'>('working')
@@ -23,10 +29,6 @@ function AuthActionInner() {
   const [newPassword, setNewPassword] = useState('')
   const [confirming, setConfirming] = useState(false)
 
-  // Used for rendering: when we have a real oobCode, this reflects what
-  // Firebase told us via `mode`. When we're on the codeless "continue" leg
-  // (Firebase's own page already did the work), we fall back to whichever
-  // type our own link was tagged with.
   const effectiveMode = oobCode
     ? modeParam
     : typeParam === 'verify'
@@ -38,8 +40,6 @@ function AuthActionInner() {
   useEffect(() => {
     if (!oobCode) {
       if (typeParam === 'verify' || typeParam === 'reset') {
-        // Firebase's own default page already completed the action before
-        // handing off to us — nothing left to do but show success.
         setStatus('success')
       } else {
         setStatus('error')
@@ -109,13 +109,13 @@ function AuthActionInner() {
 
         {status === 'success' && effectiveMode === 'verifyEmail' && (
           <>
-            <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>✅</div>
+            <CheckBadge />
             <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '.5rem' }}>Email verified!</h2>
             <p style={{ color: 'rgba(255,255,255,.5)', fontSize: '.9rem', marginBottom: '1.5rem' }}>
-              Your account is ready. Head back to the app to continue.
+              Your account is ready.
             </p>
             <a href="merjnativeapp://login" style={{ display: 'block', width: '100%', padding: '.9rem', background: GREEN, color: '#000', borderRadius: '10px', fontWeight: '700', textDecoration: 'none', boxSizing: 'border-box' }}>
-              Open Merj app
+              Continue
             </a>
           </>
         )}
@@ -144,13 +144,13 @@ function AuthActionInner() {
 
         {status === 'success' && effectiveMode === 'resetPassword' && (
           <>
-            <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>✅</div>
+            <CheckBadge />
             <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '.5rem' }}>Password updated</h2>
             <p style={{ color: 'rgba(255,255,255,.5)', fontSize: '.9rem', marginBottom: '1.5rem' }}>
-              Head back to the app and sign in with your new password.
+              You can now sign in with your new password.
             </p>
             <a href="merjnativeapp://login" style={{ display: 'block', width: '100%', padding: '.9rem', background: GREEN, color: '#000', borderRadius: '10px', fontWeight: '700', textDecoration: 'none', boxSizing: 'border-box' }}>
-              Open Merj app
+              Continue
             </a>
           </>
         )}
