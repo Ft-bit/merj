@@ -14,6 +14,7 @@ export async function POST(req: Request) {
   try {
     const link = await adminAuth.generateEmailVerificationLink(email, {
       url: 'https://merj-seven.vercel.app/auth/action',
+      handleCodeInApp: true,
     })
 
     await transporter.sendMail({
