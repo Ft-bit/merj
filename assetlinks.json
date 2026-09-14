@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.festus1.merjnativeapp",
+      "sha256_cert_fingerprints": [
+        "1D:38:30:8F:22:C7:B9:B9:8B:22:DD:4A:B3:55:95:A1:7E:F8:69:8E:7F:DE:05:F3:0C:C2:D8:1D:68:13:17:47"
+      ]
+    }
+  }
+]
