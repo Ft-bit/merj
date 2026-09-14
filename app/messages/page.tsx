@@ -103,6 +103,24 @@ function MessagesInner() {
     } catch {
       // Notification failing to write should never block the message itself.
     }
+    // Push notification — best-effort, only fires if the recipient has a
+    // saved Expo push token (i.e. granted permission on the native app).
+    try {
+      const recipientSnap = await getDoc(doc(db, 'users', recipientUid))
+      const pushToken = recipientSnap.exists() ? recipientSnap.data()?.expoPushToken : null
+      if (pushToken) {
+        fetch('/api/notifications/send-push', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            token: pushToken,
+            title: user.displayName || 'New message',
+            body: preview,
+            data: { link: `/messages?open=${activeId}` },
+          }),
+        }).catch(() => {})
+      }
+    } catch {}
   }
 
   useEffect(() => {
