@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { adminAuth } from '../../../../lib/firebaseAdmin'
+import { getAdminAuth } from '../../../../lib/firebaseAdmin'
 import nodemailer from 'nodemailer'
 
 const transporter = nodemailer.createTransport({
@@ -12,7 +12,7 @@ export async function POST(req: Request) {
   if (!email) return NextResponse.json({ error: 'Email required' }, { status: 400 })
 
   try {
-    const link = await adminAuth.generateEmailVerificationLink(email, {
+    const link = await getAdminAuth().generateEmailVerificationLink(email, {
       url: 'https://merj-seven.vercel.app/auth/action?type=verify',
     })
 
