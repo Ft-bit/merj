@@ -7,10 +7,21 @@ import { auth } from '../../../lib/firebase'
 
 const GREEN = '#00e676'
 
+function CheckBadge() {
+  return (
+    <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'rgba(0,230,118,.12)', border: '2px solid rgba(0,230,118,.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={GREEN} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20 6L9 17l-5-5" />
+      </svg>
+    </div>
+  )
+}
+
 function AuthActionInner() {
   const params = useSearchParams()
-  const mode = params.get('mode')
+  const modeParam = params.get('mode')
   const oobCode = params.get('oobCode')
+  const typeParam = params.get('type')
 
   const [status, setStatus] = useState<'working' | 'success' | 'error' | 'ready-to-reset'>('working')
   const [errorMsg, setErrorMsg] = useState('')
@@ -18,21 +29,33 @@ function AuthActionInner() {
   const [newPassword, setNewPassword] = useState('')
   const [confirming, setConfirming] = useState(false)
 
+  const effectiveMode = oobCode
+    ? modeParam
+    : typeParam === 'verify'
+      ? 'verifyEmail'
+      : typeParam === 'reset'
+        ? 'resetPassword'
+        : null
+
   useEffect(() => {
     if (!oobCode) {
-      setStatus('error')
-      setErrorMsg('Missing verification code. This link looks incomplete.')
+      if (typeParam === 'verify' || typeParam === 'reset') {
+        setStatus('success')
+      } else {
+        setStatus('error')
+        setErrorMsg('Missing verification code. This link looks incomplete.')
+      }
       return
     }
 
-    if (mode === 'verifyEmail') {
+    if (modeParam === 'verifyEmail') {
       applyActionCode(auth, oobCode)
         .then(() => setStatus('success'))
         .catch(() => {
           setStatus('error')
           setErrorMsg('This link is invalid or has expired. Request a new one from the app.')
         })
-    } else if (mode === 'resetPassword') {
+    } else if (modeParam === 'resetPassword') {
       verifyPasswordResetCode(auth, oobCode)
         .then(em => {
           setEmail(em)
@@ -46,7 +69,7 @@ function AuthActionInner() {
       setStatus('error')
       setErrorMsg('Unknown request type.')
     }
-  }, [mode, oobCode])
+  }, [modeParam, oobCode, typeParam])
 
   const handleReset = async () => {
     if (newPassword.length < 6) {
@@ -84,15 +107,15 @@ function AuthActionInner() {
           </>
         )}
 
-        {status === 'success' && mode === 'verifyEmail' && (
+        {status === 'success' && effectiveMode === 'verifyEmail' && (
           <>
-            <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>✅</div>
+            <CheckBadge />
             <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '.5rem' }}>Email verified!</h2>
             <p style={{ color: 'rgba(255,255,255,.5)', fontSize: '.9rem', marginBottom: '1.5rem' }}>
-              Your account is ready. Head back to the app to continue.
+              Your account is ready.
             </p>
             <a href="merjnativeapp://login" style={{ display: 'block', width: '100%', padding: '.9rem', background: GREEN, color: '#000', borderRadius: '10px', fontWeight: '700', textDecoration: 'none', boxSizing: 'border-box' }}>
-              Open Merj app
+              Continue
             </a>
           </>
         )}
@@ -119,15 +142,15 @@ function AuthActionInner() {
           </>
         )}
 
-        {status === 'success' && mode === 'resetPassword' && (
+        {status === 'success' && effectiveMode === 'resetPassword' && (
           <>
-            <div style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>✅</div>
+            <CheckBadge />
             <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '.5rem' }}>Password updated</h2>
             <p style={{ color: 'rgba(255,255,255,.5)', fontSize: '.9rem', marginBottom: '1.5rem' }}>
-              Head back to the app and sign in with your new password.
+              You can now sign in with your new password.
             </p>
             <a href="merjnativeapp://login" style={{ display: 'block', width: '100%', padding: '.9rem', background: GREEN, color: '#000', borderRadius: '10px', fontWeight: '700', textDecoration: 'none', boxSizing: 'border-box' }}>
-              Open Merj app
+              Continue
             </a>
           </>
         )}
