@@ -2,11 +2,16 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import { useAuth } from '../../context/AuthContext'
 import { doc, getDoc } from 'firebase/firestore'
 import { db } from '../../lib/firebase'
 import Sidebar from '../../components/Sidebar'
-import { usePaystackPayment } from 'react-paystack'
+
+// react-paystack touches window at import time, which breaks Next.js's
+// server-side render pass for this page even though the page itself is
+// 'use client' — dynamic + ssr:false keeps it out of that pass entirely.
+const AddCashButton = dynamic(() => import('../../components/AddCashButton'), { ssr: false })
 
 const GREEN = '#00e676'
 
@@ -71,56 +76,6 @@ export default function DashboardPage() {
 
   const handleWithdraw = () => {
     window.alert("Withdrawals coming soon — the payment system for moving funds out isn't built yet, this button is a placeholder for now.")
-  }
-
-  // Paystack config — publicKey/currency/reference all get finalized at
-  // the moment "Add cash" is actually clicked, since the amount (and
-  // therefore the reference) is only known then, not ahead of time.
-  const initializePayment = usePaystackPayment({
-    publicKey: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '',
-    currency: 'NGN',
-    amount: 0,
-    email: user?.email || '',
-  })
-
-  const handleAddCash = () => {
-    if (!user) return
-    const nairaInput = window.prompt('How much would you like to add? (₦)')
-    if (!nairaInput) return
-    const naira = parseFloat(nairaInput)
-    if (isNaN(naira) || naira <= 0) {
-      window.alert('Enter a valid amount.')
-      return
-    }
-    const reference = `merj_${user.uid}_${Date.now()}`
-    initializePayment({
-      config: {
-        publicKey: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '',
-        email: user.email || '',
-        amount: Math.round(naira * 100), // Paystack expects kobo, the smallest NGN unit
-        currency: 'NGN',
-        reference,
-        metadata: { uid: user.uid },
-      },
-      onSuccess: async () => {
-        try {
-          const res = await fetch('/api/payments/verify-deposit', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ reference, uid: user.uid }),
-          })
-          const data = await res.json()
-          if (data.success) {
-            window.alert(`✓ ₦${naira.toLocaleString()} added successfully.`)
-          } else {
-            window.alert(`Payment went through, but we couldn't confirm it on our end: ${data.error || 'unknown error'}. Contact support with reference ${reference}.`)
-          }
-        } catch {
-          window.alert(`Payment went through, but something went wrong confirming it. Contact support with reference ${reference}.`)
-        }
-      },
-      onClose: () => {},
-    } as any)
   }
 
   if (loading) {
@@ -223,10 +178,9 @@ export default function DashboardPage() {
             {balanceVisible ? formatCurrency(balanceCents) : '••••••'}
           </div>
           <div style={{ display: 'flex', gap: '.6rem' }}>
-            <button className="balance-action-btn" onClick={handleAddCash}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2"><path d="M12 5v14M5 12h14" /></svg>
-              Add cash (₦)
-            </button>
+            {user && (
+              <AddCashButton uid={user.uid} email={user.email || ''} />
+            )}
             <button className="balance-action-btn" onClick={handleWithdraw}>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2"><path d="M12 5v14M5 12l7 7 7-7" /></svg>
               Withdraw
