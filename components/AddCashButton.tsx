@@ -63,7 +63,7 @@ export default function AddCashButton({ uid, email }: Props) {
   return (
     <button className="balance-action-btn" onClick={handleAddCash}>
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2"><path d="M12 5v14M5 12h14" /></svg>
-      Add cash (₦)
+      Add cash
     </button>
   )
 }
