@@ -22,8 +22,8 @@ interface ChecklistState {
   hasListing: boolean
 }
 
-function formatCurrency(cents: number) {
-  return `$${(cents / 100).toFixed(2)}`
+function formatNaira(kobo: number) {
+  return `₦${(kobo / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
 export default function DashboardPage() {
@@ -66,7 +66,7 @@ export default function DashboardPage() {
           hasBio: !!(data.bio && data.bio.trim().length > 0),
           hasListing: false, // wired up once we can query the user's own listings
         })
-        setBalanceCents(typeof data.balance === 'number' ? data.balance : 0)
+        setBalanceCents(typeof data.balanceNGN === 'number' ? data.balanceNGN : 0)
       } catch {
         setChecklist(prev => ({ ...prev, emailVerified: !!user.emailVerified }))
       }
@@ -132,16 +132,25 @@ export default function DashboardPage() {
         }
 
         .balance-card{
-          background:#0d1f14;border:1px solid rgba(0,230,118,.25);border-radius:18px;padding:1.5rem;
+          position:relative;overflow:hidden;
+          background:linear-gradient(155deg,#0f2417 0%,#081a10 55%,#050f0a 100%);
+          border:1px solid rgba(0,230,118,.22);border-radius:22px;padding:1.75rem;
+          box-shadow:0 20px 50px -20px rgba(0,230,118,.25), inset 0 1px 0 rgba(255,255,255,.04);
+        }
+        .balance-card::before{
+          content:'';position:absolute;top:-60%;right:-30%;width:70%;height:220%;
+          background:radial-gradient(ellipse, rgba(0,230,118,.14) 0%, transparent 65%);
+          pointer-events:none;
         }
         .balance-eye{ background:none;border:none;cursor:pointer;padding:4px;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.7) }
+        .balance-actions-row{ display:flex; gap:.6rem; position:relative;z-index:1 }
         .balance-action-btn{
-          display:flex;align-items:center;gap:6px;border:none;border-radius:10px;padding:.6rem 1rem;
-          font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;background:${GREEN};color:#000;
-          transition:transform .15s;
+          flex:1;display:flex;align-items:center;justify-content:center;gap:6px;border:none;border-radius:12px;
+          padding:.8rem .5rem;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;
+          background:${GREEN};color:#000;transition:transform .15s,filter .15s;white-space:nowrap;
         }
-        .balance-action-btn:hover{ transform:translateY(-1px) }
-        .balance-action-btn.ghost{ background:rgba(255,255,255,.08);color:#fff }
+        .balance-action-btn:hover{ transform:translateY(-1px);filter:brightness(1.06) }
+        .balance-action-btn.ghost{ background:rgba(255,255,255,.07);color:#fff;border:1px solid rgba(255,255,255,.08) }
 
         @media(max-width:900px){ .right-rail{display:none!important} .feed-main{padding-top:4.5rem!important;padding-bottom:7rem!important} }
         @media(max-width:600px){ .feed-main{padding:1rem!important;padding-top:4.5rem!important;padding-bottom:7rem!important} }
@@ -159,8 +168,11 @@ export default function DashboardPage() {
         </div>
 
         <div className="balance-card" style={{ marginBottom: '1.5rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '.5rem' }}>
-            <span style={{ color: 'rgba(255,255,255,.6)', fontSize: '.85rem', fontWeight: '600' }}>Your balance</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '.5rem', position: 'relative', zIndex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+              <span style={{ fontSize: '1.05rem' }}>🇳🇬</span>
+              <span style={{ color: 'rgba(255,255,255,.6)', fontSize: '.85rem', fontWeight: '600' }}>Your balance (NGN)</span>
+            </div>
             <button className="balance-eye" onClick={() => setBalanceVisible(v => !v)} aria-label="Toggle balance visibility">
               {balanceVisible ? (
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -174,10 +186,10 @@ export default function DashboardPage() {
               )}
             </button>
           </div>
-          <div style={{ color: '#fff', fontSize: '2.1rem', fontWeight: '800', letterSpacing: '-.02em', marginBottom: '1.25rem' }}>
-            {balanceVisible ? formatCurrency(balanceCents) : '••••••'}
+          <div style={{ color: '#fff', fontSize: '2.3rem', fontWeight: '800', letterSpacing: '-.02em', marginBottom: '1.5rem', position: 'relative', zIndex: 1 }}>
+            {balanceVisible ? formatNaira(balanceCents) : '••••••'}
           </div>
-          <div style={{ display: 'flex', gap: '.6rem' }}>
+          <div className="balance-actions-row">
             {user && (
               <AddCashButton uid={user.uid} email={user.email || ''} />
             )}
