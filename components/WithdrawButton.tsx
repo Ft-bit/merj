@@ -132,8 +132,8 @@ export default function WithdrawButton({ uid, balanceKobo, onSuccess }: Props) {
                   onChange={e => setBankCode(e.target.value)}
                   style={{ width: '100%', boxSizing: 'border-box', padding: '.7rem', marginTop: '.3rem', marginBottom: '.9rem', background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.12)', borderRadius: '10px', color: '#fff', fontSize: '.88rem', fontFamily: 'inherit' }}
                 >
-                  <option value="">{banksLoading ? 'Loading banks…' : 'Select your bank'}</option>
-                  {banks.map(b => <option key={b.code} value={b.code}>{b.name}</option>)}
+                  <option value="" style={{ color: '#000' }}>{banksLoading ? 'Loading banks…' : 'Select your bank'}</option>
+                  {banks.map(b => <option key={b.code} value={b.code} style={{ color: '#000' }}>{b.name}</option>)}
                 </select>
 
                 <label style={{ fontSize: '.72rem', fontWeight: '700', color: 'rgba(255,255,255,.5)', letterSpacing: '.04em' }}>ACCOUNT NUMBER</label>
