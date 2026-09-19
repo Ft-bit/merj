@@ -7,11 +7,13 @@ import { useAuth } from '../../context/AuthContext'
 import { doc, getDoc } from 'firebase/firestore'
 import { db } from '../../lib/firebase'
 import Sidebar from '../../components/Sidebar'
+import DedicatedAccountBanner from '../../components/DedicatedAccountBanner'
 
 // react-paystack touches window at import time, which breaks Next.js's
 // server-side render pass for this page even though the page itself is
 // 'use client' — dynamic + ssr:false keeps it out of that pass entirely.
 const AddCashButton = dynamic(() => import('../../components/AddCashButton'), { ssr: false })
+const WithdrawButton = dynamic(() => import('../../components/WithdrawButton'), { ssr: false })
 
 const GREEN = '#00e676'
 
@@ -54,6 +56,15 @@ export default function DashboardPage() {
     if (!loading && (!user || !user.emailVerified)) router.push('/login')
   }, [user, loading, router])
 
+  const refreshBalance = async () => {
+    if (!user) return
+    try {
+      const snap = await getDoc(doc(db, 'users', user.uid))
+      const data = snap.exists() ? snap.data() : {}
+      setBalanceCents(typeof data.balanceNGN === 'number' ? data.balanceNGN : 0)
+    } catch {}
+  }
+
   useEffect(() => {
     if (!user) return
     ;(async () => {
@@ -73,10 +84,6 @@ export default function DashboardPage() {
       setChecking(false)
     })()
   }, [user])
-
-  const handleWithdraw = () => {
-    window.alert("Withdrawals coming soon — the payment system for moving funds out isn't built yet, this button is a placeholder for now.")
-  }
 
   if (loading) {
     return (
@@ -168,6 +175,13 @@ export default function DashboardPage() {
         </div>
 
         <div className="balance-card" style={{ marginBottom: '1.5rem' }}>
+          {user && (
+            <DedicatedAccountBanner
+              uid={user.uid}
+              email={user.email || ''}
+              displayName={user.displayName || ''}
+            />
+          )}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '.5rem', position: 'relative', zIndex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
               <span style={{ fontSize: '1.05rem' }}>🇳🇬</span>
@@ -193,10 +207,9 @@ export default function DashboardPage() {
             {user && (
               <AddCashButton uid={user.uid} email={user.email || ''} />
             )}
-            <button className="balance-action-btn" onClick={handleWithdraw}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2"><path d="M12 5v14M5 12l7 7 7-7" /></svg>
-              Withdraw
-            </button>
+            {user && (
+              <WithdrawButton uid={user.uid} balanceKobo={balanceCents} onSuccess={refreshBalance} />
+            )}
             <button className="balance-action-btn ghost" onClick={() => router.push('/listings')}>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 3" /></svg>
               Activity
