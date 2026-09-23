@@ -313,7 +313,7 @@ export default function DashboardPage() {
             <button
               className="balance-eye"
               onClick={() => setBalanceVisible(v => !v)}
-              aria label={balanceVisible ? 'Hide balance' : 'Show balance'}
+              aria-label={balanceVisible ? 'Hide balance' : 'Show balance'}
               aria-pressed={!balanceVisible}
             >
               {balanceVisible ? Icon.eye : Icon.eyeOff}
@@ -334,7 +334,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="balance-actions-row">
-            <AddCashButton uid={user.uid} email={user.email || ''} />
+            <AddCashButton uid={user.uid} email={user.email || ''} onSuccess={refreshBalance} />
             <WithdrawButton uid={user.uid} balanceKobo={balanceCents} onSuccess={refreshBalance} />
             <button className="balance-action-btn ghost" onClick={() => router.push('/listings')}>
               {Icon.clock} Activity
