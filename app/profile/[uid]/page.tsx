@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useAuth } from '../../../context/AuthContext'
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore'
+import { doc, getDoc, setDoc, serverTimestamp, collection, query, where, orderBy, getDocs } from 'firebase/firestore'
 import { db } from '../../../lib/firebase'
 import Sidebar from '../../../components/Sidebar'
 import { linkifyText } from '../../../lib/linkify'
@@ -18,6 +18,14 @@ interface ProfileData {
   createdAt?: any
 }
 
+interface Listing {
+  id: string
+  title: string
+  price: number
+  images: string[]
+  category: string
+}
+
 function conversationId(a: string, b: string) {
   return [a, b].sort().join('_')
 }
@@ -29,6 +37,7 @@ export default function PublicProfilePage() {
   const uid = params?.uid as string
 
   const [profile, setProfile] = useState<ProfileData | null>(null)
+  const [listings, setListings] = useState<Listing[]>([])
   const [fetching, setFetching] = useState(true)
   const [notFound, setNotFound] = useState(false)
   const [messaging, setMessaging] = useState(false)
@@ -58,6 +67,11 @@ export default function PublicProfilePage() {
       } catch {
         setNotFound(true)
       }
+      try {
+        const q = query(collection(db, 'listings'), where('sellerId', '==', uid), where('status', '==', 'active'), orderBy('createdAt', 'desc'))
+        const listingsSnap = await getDocs(q)
+        setListings(listingsSnap.docs.map(d => ({ id: d.id, ...d.data() } as Listing)))
+      } catch {}
       setFetching(false)
     }
     fetchProfile()
@@ -148,6 +162,18 @@ export default function PublicProfilePage() {
         *{box-sizing:border-box}
         @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
         @keyframes spin{to{transform:rotate(360deg)}}
+
+        .plisting-card{
+          border:1px solid var(--border-color);background:var(--bg-card);border-radius:14px;
+          padding:.7rem;cursor:pointer;transition:all .15s;text-align:left;font-family:inherit;
+        }
+        .plisting-card:hover{ border-color:rgba(0,230,118,.3);transform:translateY(-2px) }
+        .plisting-card-img{
+          aspect-ratio:4/3;border-radius:10px;background:var(--bg-input);overflow:hidden;
+          display:flex;align-items:center;justify-content:center;
+        }
+        .plisting-card-img img{ width:100%;height:100%;object-fit:cover;display:block }
+
         @media(max-width:900px){ .app-sidebar{display:none!important} .pubprofile-main{padding-top:3.5rem!important} }
       `}</style>
 
@@ -195,6 +221,10 @@ export default function PublicProfilePage() {
                   Member since {memberSince}
                 </p>
               )}
+              <div style={{ display: 'flex', gap: '1.2rem', marginTop: '.7rem' }}>
+                <span style={{ fontSize: '.85rem' }}><strong>{listings.length}</strong> <span style={{ color: 'var(--text-tertiary)' }}>Listings</span></span>
+                <span style={{ fontSize: '.85rem' }}><strong>0</strong> <span style={{ color: 'var(--text-tertiary)' }}>Sold</span></span>
+              </div>
             </div>
 
             <button
@@ -215,6 +245,27 @@ export default function PublicProfilePage() {
             <p style={{ color: 'var(--text-secondary)', fontSize: '.94rem', lineHeight: 1.75, marginTop: '1.25rem', maxWidth: '520px' }}>
               {linkifyText(profile.bio, GREEN)}
             </p>
+          )}
+
+          {listings.length > 0 && (
+            <div style={{ marginTop: '2rem' }}>
+              <p style={{ fontSize: '.72rem', fontWeight: '700', letterSpacing: '.04em', color: 'var(--text-tertiary)', marginBottom: '.9rem' }}>LISTINGS</p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '.9rem' }}>
+                {listings.map(item => (
+                  <button key={item.id} className="plisting-card" onClick={() => router.push(`/listing/${item.id}`)}>
+                    <div className="plisting-card-img">
+                      {item.images?.[0] ? (
+                        <img src={item.images[0]} alt="" />
+                      ) : (
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" strokeWidth="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+                      )}
+                    </div>
+                    <p style={{ fontSize: '.85rem', fontWeight: '700', marginTop: '.6rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</p>
+                    <p style={{ fontSize: '.95rem', fontWeight: '800', color: GREEN, marginTop: '.2rem' }}>${item.price.toLocaleString()}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
           )}
         </div>
       </main>
