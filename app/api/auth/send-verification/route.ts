@@ -1,35 +1,54 @@
 import { NextResponse } from 'next/server'
 import { getAdminAuth } from '../../../../lib/firebaseAdmin'
-import nodemailer from 'nodemailer'
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD },
-})
+const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send'
 
 export async function POST(req: Request) {
-  const { email } = await req.json()
-  if (!email) return NextResponse.json({ error: 'Email required' }, { status: 400 })
+  // Only signed-in Merj users can trigger a push. The app sends its Firebase
+  // ID token in the Authorization header; without this check anyone who found
+  // this URL could spam notifications to any device.
+  const authHeader = req.headers.get('authorization') || ''
+  const idToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : ''
+  if (!idToken) return NextResponse.json({ error: 'Not signed in' }, { status: 401 })
+  try {
+    await getAdminAuth().verifyIdToken(idToken)
+  } catch {
+    return NextResponse.json({ error: 'Invalid session' }, { status: 401 })
+  }
+
+  const { token, title, body, data } = await req.json()
+
+  if (typeof token !== 'string' || !/^Expo(nent)?PushToken\[.+\]$/.test(token)) {
+    return NextResponse.json({ error: 'Invalid push token' }, { status: 400 })
+  }
+  if (!title || !body) {
+    return NextResponse.json({ error: 'Title and body required' }, { status: 400 })
+  }
 
   try {
-    const link = await getAdminAuth().generateEmailVerificationLink(email, {
-      url: 'https://merj-seven.vercel.app/auth/action?type=verify',
+    const res = await fetch(EXPO_PUSH_URL, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        to: token,
+        title: String(title).slice(0, 100),
+        body: String(body).slice(0, 200),
+        data: data || {},
+        sound: 'default',
+        priority: 'high',
+        channelId: 'default',
+      }),
     })
 
-    await transporter.sendMail({
-      from: `Merj <${process.env.GMAIL_USER}>`,
-      to: email,
-      subject: 'Verify your Merj account',
-      html: `<div style="font-family:sans-serif;background:#060606;color:#fff;padding:32px;border-radius:16px;max-width:420px;margin:0 auto;">
-        <h2 style="color:#00e676;">Verify your email</h2>
-        <p>Click the button below to verify your Merj account.</p>
-        <a href="${link}" style="display:inline-block;margin-top:16px;padding:14px 28px;background:#00e676;color:#000;text-decoration:none;font-weight:700;border-radius:10px;">Verify email</a>
-        <p style="color:#999;font-size:13px;margin-top:24px;">If you didn't create a Merj account, you can ignore this email.</p>
-      </div>`,
-    })
-
-    return NextResponse.json({ success: true })
+    const json = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      return NextResponse.json({ error: 'Push service rejected the request', detail: json }, { status: 502 })
+    }
+    return NextResponse.json({ success: true, result: json?.data })
   } catch (e: any) {
-    return NextResponse.json({ error: e?.message || 'Could not send email' }, { status: 500 })
+    return NextResponse.json({ error: e?.message || 'Could not send push' }, { status: 500 })
   }
 }
